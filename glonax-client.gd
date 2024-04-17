@@ -120,6 +120,27 @@ class InstanceMessage:
 
 #############################
 
+class EngineMessage:
+	var driver_demand
+	var actual_engine
+	var rpm
+	
+	# TODO: Move somewhere
+	func decode_uint16_big_endian(byte_array):
+		if len(byte_array) != 2:
+			return -1 
+		return (byte_array[0] << 8) | byte_array[1] 
+	
+	func from_bytes(data: PackedByteArray):
+		driver_demand = data[0]
+		actual_engine = data[1]
+		rpm = decode_uint16_big_endian(data.slice(2, 4))
+
+	func get_string_representation():
+		return "Driver demand: " + str(driver_demand) + "%; Actual engine: " + str(actual_engine) + "%; RPM: " + str(rpm)
+
+#############################
+
 func _init():
 	_stream.set_big_endian(true)
 
@@ -131,17 +152,15 @@ func _process(delta: float) -> void:
 		_status = new_status
 		match _status:
 			_stream.STATUS_NONE:
-				print("Disconnected from host.")
 				emit_signal("disconnected")
 			_stream.STATUS_CONNECTING:
 				print("Connecting to host.")
 			_stream.STATUS_CONNECTED:
-				print("Connected to host.")
 				emit_signal("connected")
 
 				if not _is_echo_setup:
 					## SEND ECHO
-					print("Sending echo")
+					#print("Sending echo")
 					var buffer = PackedByteArray()
 					buffer.append_array([0x1, 0x2, 0x3, 0x4])
 					send(MessageType.ECHO, buffer)

@@ -45,6 +45,10 @@ func _handle_client_error() -> void:
 	
 func _handle_client_message(message_type: Client.MessageType, data: PackedByteArray) -> void:
 	print("We got message: " + str(message_type) + " with data: " + str(data))
+	if message_type == Client.MessageType.ENGINE:
+		var engine = Client.EngineMessage.new()
+		engine.from_bytes(data)
+		print(engine.get_string_representation())
 	
 func _process(delta):
 	var player = get_node("Player") # Adjust the path if necessary.
