@@ -13,7 +13,7 @@ var joystick_postion = Vector2(950, 450)
 var joystick_max_handle_distance = 50
 
 const Client = preload("res://glonax-client.gd")
-var _client: Client = Client.new()
+var _client: Client = Client.new("godot/4.2")
 
 enum Direction {
 	LEFT = 0,
@@ -75,17 +75,27 @@ func max_boom(direction: Direction):
 	match direction:
 		Direction.LEFT:
 			print("Going left")
-			var motion = Client.MotionMessage.new()
-			motion.command = Client.CHANGE
-			
-			var change_set = Client.MotionChangeSetMessage.new()
-			change_set.actuator = 2
-			change_set.value = 32_000
-			
-			motion.value_list = [change_set]
-			
-			print("Motion bytes: ", motion.to_bytes())
-			_client.send(Client.MessageType.MOTION, motion.to_bytes())
+
+			### MOTION: CHANGE
+			#var motion = Client.MotionMessage.new()
+			#motion.command = Client.CHANGE
+			#
+			#var change_set = Client.MotionChangeSetMessage.new()
+			#change_set.actuator = 2
+			#change_set.value = 32_000
+			#
+			#motion.value_list = [change_set]
+			#
+			#_client.send(Client.MessageType.MOTION, motion.to_bytes())
+
+			### MOTION: STOP ALL
+			#var motion = Client.MotionMessage.stop_all()
+			#_client.send(Client.MessageType.MOTION, motion.to_bytes())
+
+			### MOTION: RESUME ALL
+			#var motion = Client.MotionMessage.resume_all()
+			#_client.send(Client.MessageType.MOTION, motion.to_bytes())
+
 			
 		Direction.RIGHT:
 			print("Going right")
