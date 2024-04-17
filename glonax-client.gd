@@ -35,7 +35,13 @@ enum MessageType {
 
 #############################
 
-enum { STOP_ALL, RESUME_ALL, RESET_ALL, STRAIGHT_DRIVE, CHANGE }
+enum {
+	STOP_ALL = 0x0,
+	RESUME_ALL = 0x1,
+	RESET_ALL = 0x2,
+	STRAIGHT_DRIVE = 0x5,
+	CHANGE = 0x10
+}
 
 class MotionChangeSetMessage:
 	var actuator
@@ -71,19 +77,14 @@ class MotionMessage:
 
 	func to_bytes() -> PackedByteArray:
 		var buffer = PackedByteArray()
+		buffer.append(command)
 
 		match command:
-			STOP_ALL:
-				buffer.append(0x0)
-			RESUME_ALL:
-				buffer.append(0x1)
-			RESET_ALL:
-				buffer.append(0x2)
 			STRAIGHT_DRIVE:
-				buffer.append(0x5)
+				buffer.append(command)
 				buffer.append_array(_encode_be_s16(value))
 			CHANGE:
-				buffer.append(0x10)
+				buffer.append(command)
 				buffer.append(value_list.size())
 				for change_set in value_list:
 					buffer.append_array(_encode_be_s16(change_set.actuator))
@@ -143,6 +144,7 @@ class EngineMessage:
 
 func _init(user_agent: String = "godot"):
 	_stream.set_big_endian(true)
+	_stream.set_no_delay(true)
 	_user_agent = user_agent
 
 func _process(delta: float) -> void:
@@ -213,6 +215,7 @@ func is_setup_complete() -> bool:
 
 func connect_to_host(host: String, port: int) -> void:
 	print("Connecting to %s:%d" % [host, port])
+
 	# Reset status so we can tell if it changes to error again.
 	_status = _stream.STATUS_NONE
 	if _stream.connect_to_host(host, port) != OK:
