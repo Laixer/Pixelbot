@@ -51,6 +51,21 @@ class Message:
 
 		return buffer
 
+	static func _encode_be_s64(value):
+		var buffer = PackedByteArray()
+		buffer.resize(8)
+
+		buffer.set(0, (value >> 56) & 0xFF)
+		buffer.set(1, (value >> 48) & 0xFF)
+		buffer.set(2, (value >> 40) & 0xFF)
+		buffer.set(3, (value >> 32) & 0xFF)
+		buffer.set(4, (value >> 24) & 0xFF)
+		buffer.set(5, (value >> 16) & 0xFF)
+		buffer.set(6, (value >> 8) & 0xFF)
+		buffer.set(7, value & 0xFF)
+
+		return buffer
+
 	static func _decode_be_s16(byte_array):
 		if len(byte_array) != 2:
 			return -1 
