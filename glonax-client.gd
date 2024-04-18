@@ -178,6 +178,32 @@ class RequestMessage:
 
 #############################
 
+enum StatusType {
+	HEALTHY = 0xF8,
+	DEGRADED = 0xF9,
+	FAULTY = 0xFA,
+	EMERGENCY = 0xFB
+}
+
+class StatusMessage:
+	extends Message
+	
+	var status_type: StatusType
+
+	func to_bytes() -> PackedByteArray:
+		var buffer = PackedByteArray()
+		buffer.append(status_type)
+
+		return buffer
+
+	static func from_bytes(data: PackedByteArray) -> StatusMessage:
+		var status = StatusMessage.new()
+		status.status_type = data.decode_u8(0)
+
+		return status
+
+#############################
+
 class InstanceMessage:
 	extends Message
 
@@ -187,6 +213,17 @@ class InstanceMessage:
 	var version_minor
 	var version_patch
 	var name
+
+	func to_bytes() -> PackedByteArray:
+		var buffer = PackedByteArray()
+		buffer.append_array(instance_id)
+		buffer.append(machine_type)
+		buffer.append(version_major)
+		buffer.append(version_minor)
+		buffer.append(version_patch)
+		buffer.append_array(name.to_utf8_buffer())
+
+		return buffer
 
 	static func from_bytes(data: PackedByteArray) -> InstanceMessage:
 		var instance = InstanceMessage.new()
