@@ -1,28 +1,74 @@
 [gd_scene load_steps=5 format=3 uid="uid://bkwjduy3nskeg"]
 
-[ext_resource type="Texture2D" uid="uid://d4bjfmny0nqux" path="res://icon.svg" id="1_irxqr"]
 [ext_resource type="Script" path="res://World.gd" id="1_ufefb"]
 [ext_resource type="Texture2D" uid="uid://bklny0kr2ebs2" path="res://VirtualJoystickPack/JoystickSplitted.png" id="3_m5igp"]
+[ext_resource type="Script" path="res://JoystickInner.gd" id="4_ec0kx"]
 [ext_resource type="Texture2D" uid="uid://du255sudo8tl7" path="res://VirtualJoystickPack/LargeHandleFilled.png" id="4_sy0pa"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_ufefb")
 
-[node name="Label" type="Label" parent="."]
-offset_left = 522.0
-offset_top = 288.0
-offset_right = 562.0
-offset_bottom = 311.0
-text = "This is the world"
-
-[node name="Player" type="Sprite2D" parent="."]
-position = Vector2(361, 317)
-texture = ExtResource("1_irxqr")
-
-[node name="JoystickSplitted" type="Sprite2D" parent="."]
-position = Vector2(950, 450)
+[node name="JoystickOuterRight" type="Sprite2D" parent="."]
+position = Vector2(1000, 525)
+scale = Vector2(0.4, 0.4)
 texture = ExtResource("3_m5igp")
 
-[node name="LargeHandleFilled" type="Sprite2D" parent="."]
-position = Vector2(950, 450)
+[node name="JoystickOuterLeft" type="Sprite2D" parent="."]
+position = Vector2(150, 525)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("3_m5igp")
+
+[node name="JoystickInnerRight" type="Sprite2D" parent="."]
+position = Vector2(1000, 525)
+scale = Vector2(0.4, 0.4)
 texture = ExtResource("4_sy0pa")
+script = ExtResource("4_ec0kx")
+
+[node name="JoystickInnerLeft" type="Sprite2D" parent="."]
+position = Vector2(151, 525)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("4_sy0pa")
+script = ExtResource("4_ec0kx")
+
+[node name="Engine RPM" type="Label" parent="."]
+offset_left = 386.0
+offset_top = 454.0
+offset_right = 573.0
+offset_bottom = 536.0
+text = "Engine RPM"
+horizontal_alignment = 1
+
+[node name="Work Mode" type="Label" parent="."]
+offset_left = 573.0
+offset_top = 454.0
+offset_right = 760.0
+offset_bottom = 536.0
+text = "Engine RPM"
+horizontal_alignment = 1
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
+offset_left = 256.0
+offset_top = 56.0
+offset_right = 896.0
+offset_bottom = 416.0
+
+[node name="Start motor" type="Button" parent="."]
+offset_left = 360.0
+offset_top = 548.0
+offset_right = 478.0
+offset_bottom = 615.0
+text = "Start motor"
+
+[node name="Stop motor" type="Button" parent="."]
+offset_left = 518.0
+offset_top = 548.0
+offset_right = 636.0
+offset_bottom = 615.0
+text = "Stop motor"
+
+[node name="Shutdown" type="Button" parent="."]
+offset_left = 674.0
+offset_top = 548.0
+offset_right = 792.0
+offset_bottom = 615.0
+text = "Shutdown"
