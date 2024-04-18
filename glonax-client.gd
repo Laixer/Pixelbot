@@ -66,6 +66,21 @@ class Message:
 		result |= byte_array[2] << 8
 		result |= byte_array[3]
 		return result 
+		
+	static func _decode_be_s64(byte_array):
+		if len(byte_array) != 8:
+			return -1 
+
+		var result = 0
+		result |= byte_array[0] << 56
+		result |= byte_array[1] << 48
+		result |= byte_array[2] << 40
+		result |= byte_array[3] << 32
+		result |= byte_array[4] << 24
+		result |= byte_array[5] << 16
+		result |= byte_array[6] << 8
+		result |= byte_array[7]
+		return result
 
 #############################
 
@@ -240,6 +255,35 @@ class InstanceMessage:
 
 	func get_string_representation():
 		return "Instance ID: " + instance_id.hex_encode() + "; Machine Type: " + str(machine_type) + "; Version: " + str(version_major) + "." + str(version_minor) + "." + str(version_patch) + "; Name: " + name
+
+#############################
+
+class VMSMessage:
+	extends Message
+
+	var memory_used
+	var memory_total
+	var swap_used
+	var swap_total
+	var cpu_load_0
+	var cpu_load_1
+	var cpu_load_2
+	var uptime
+	var timestamp
+
+	static func from_bytes(data: PackedByteArray) -> VMSMessage:
+		var vms = VMSMessage.new()
+		vms.memory_used = _decode_be_s64(data.slice(0, 8))
+		vms.memory_total = _decode_be_s64(data.slice(8, 16))
+		vms.swap_used = _decode_be_s64(data.slice(16, 24))
+		vms.swap_total = _decode_be_s64(data.slice(24, 32))
+		#vms.cpu_load_0 = TODO: Decode BE double
+		#vms.cpu_load_1 = TODO: Decode BE double
+		#vms.cpu_load_2 = TODO: Decode BE double
+		vms.uptime = _decode_be_s64(data.slice(56, 64))
+		vms.timestamp = _decode_be_s64(data.slice(64, 72))
+
+		return vms
 
 #############################
 
