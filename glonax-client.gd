@@ -36,18 +36,6 @@ enum MessageType {
 
 #############################
 
-enum {
-	STOP_ALL = 0x0,
-	RESUME_ALL = 0x1,
-	RESET_ALL = 0x2,
-	STRAIGHT_DRIVE = 0x5,
-	CHANGE = 0x10
-}
-
-class MotionChangeSetMessage:
-	var actuator
-	var value
-
 class Message:
 	static func _encode_be_s16(value):
 		return [(value >> 8) & 0xFF, value & 0xFF]
@@ -79,6 +67,19 @@ class Message:
 		result |= byte_array[3]
 		return result 
 
+#############################
+
+enum {
+	STOP_ALL = 0x0,
+	RESUME_ALL = 0x1,
+	RESET_ALL = 0x2,
+	STRAIGHT_DRIVE = 0x5,
+	CHANGE = 0x10
+}
+
+class MotionChangeSetMessage:
+	var actuator
+	var value
 
 class MotionMessage:
 	extends Message
@@ -133,6 +134,28 @@ class EchoMessage:
 		echo.value = _decode_be_s32(data)
 
 		return echo
+
+#############################
+
+class SessionMessage:
+	extends Message
+	
+	var flags: int = 0
+	var name: String
+
+	func to_bytes() -> PackedByteArray:
+		var buffer = PackedByteArray()
+		buffer.append(flags)
+		buffer.append_array(name.to_utf8_buffer())
+
+		return buffer
+
+	static func from_bytes(data: PackedByteArray) -> SessionMessage:
+		var session = SessionMessage.new()
+		session.flags = data.decode_u8(0)
+		session.name = data.slice(1, data.size()).get_string_from_utf8()
+
+		return session
 
 #############################
 
@@ -237,11 +260,11 @@ func _process(delta: float) -> void:
 					var echo = EchoMessage.from_bytes(payload[1])
 					if echo.value == _echo.value:
 						_is_echo_setup = true
-					## SEND SESSION
-					var buffer_s = PackedByteArray()
-					buffer_s.append(0x3)
-					buffer_s.append_array(_user_agent.to_utf8_buffer())
-					send(MessageType.SESSION, buffer_s)
+
+					var session = SessionMessage.new()
+					session.flags = 3
+					session.name = _user_agent
+					send(MessageType.SESSION, session.to_bytes())
 
 				elif message_type == MessageType.INSTANCE:
 					var instance = InstanceMessage.from_bytes(payload[1])
