@@ -9,66 +9,79 @@
 script = ExtResource("1_ufefb")
 
 [node name="JoystickOuterRight" type="Sprite2D" parent="."]
-position = Vector2(1000, 525)
+position = Vector2(1385.2, 943.2)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("3_m5igp")
 
 [node name="JoystickOuterLeft" type="Sprite2D" parent="."]
-position = Vector2(150, 525)
+position = Vector2(535.2, 943.2)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("3_m5igp")
 
 [node name="JoystickInnerRight" type="Sprite2D" parent="."]
-position = Vector2(1000, 525)
+position = Vector2(1385.2, 943.2)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("4_sy0pa")
 script = ExtResource("4_ec0kx")
 
 [node name="JoystickInnerLeft" type="Sprite2D" parent="."]
-position = Vector2(151, 525)
+position = Vector2(536.2, 943.2)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("4_sy0pa")
 script = ExtResource("4_ec0kx")
 
 [node name="Engine RPM" type="Label" parent="."]
-offset_left = 386.0
-offset_top = 454.0
-offset_right = 573.0
-offset_bottom = 536.0
-text = "Engine RPM"
+offset_left = 624.0
+offset_top = 888.0
+offset_right = 811.0
+offset_bottom = 970.0
+text = "Engine RPM:"
 horizontal_alignment = 1
 
-[node name="Work Mode" type="Label" parent="."]
-offset_left = 573.0
-offset_top = 454.0
-offset_right = 760.0
-offset_bottom = 536.0
-text = "Engine RPM"
-horizontal_alignment = 1
-
-[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
-offset_left = 256.0
+[node name="ExcavatorCam" type="VideoStreamPlayer" parent="."]
+offset_left = 320.0
 offset_top = 56.0
-offset_right = 896.0
-offset_bottom = 416.0
+offset_right = 1600.0
+offset_bottom = 776.0
 
 [node name="Start motor" type="Button" parent="."]
-offset_left = 360.0
-offset_top = 548.0
-offset_right = 478.0
-offset_bottom = 615.0
+offset_left = 745.2
+offset_top = 966.2
+offset_right = 863.2
+offset_bottom = 1033.2
 text = "Start motor"
 
 [node name="Stop motor" type="Button" parent="."]
-offset_left = 518.0
-offset_top = 548.0
-offset_right = 636.0
-offset_bottom = 615.0
+offset_left = 903.2
+offset_top = 966.2
+offset_right = 1021.2
+offset_bottom = 1033.2
 text = "Stop motor"
 
 [node name="Shutdown" type="Button" parent="."]
-offset_left = 674.0
-offset_top = 548.0
-offset_right = 792.0
-offset_bottom = 615.0
+offset_left = 1059.2
+offset_top = 966.2
+offset_right = 1177.2
+offset_bottom = 1033.2
 text = "Shutdown"
+
+[node name="Work mode slider" type="HSlider" parent="."]
+offset_left = 880.0
+offset_top = 896.0
+offset_right = 1208.0
+offset_bottom = 960.0
+max_value = 10.0
+
+[node name="Work mode label" type="Label" parent="Work mode slider"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = -32.0
+offset_right = 186.0
+offset_bottom = -9.0
+text = "Requested Work Mode:"
+
+[connection signal="pressed" from="Start motor" to="." method="_on_start_motor_pressed"]
+[connection signal="pressed" from="Stop motor" to="." method="_on_stop_motor_pressed"]
+[connection signal="pressed" from="Shutdown" to="." method="_on_shutdown_pressed"]
+[connection signal="changed" from="Work mode slider" to="." method="_on_work_mode_slider_changed"]
+[connection signal="value_changed" from="Work mode slider" to="." method="_on_work_mode_slider_value_changed"]
