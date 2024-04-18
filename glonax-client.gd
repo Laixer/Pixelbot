@@ -362,13 +362,9 @@ func _process(delta: float) -> void:
 			_stream.STATUS_NONE:
 				emit_signal("disconnected")
 			_stream.STATUS_CONNECTING:
-				print("Connecting to host.")
+				pass
 			_stream.STATUS_CONNECTED:
-				emit_signal("connected")
-
-				if not _is_echo_setup:
-					_echo = EchoMessage.new()
-					send(MessageType.ECHO, _echo.to_bytes())
+				_handshake()
 
 			_stream.STATUS_ERROR:
 				print("Error with socket stream.")
@@ -393,25 +389,33 @@ func _process(delta: float) -> void:
 				print("Error getting data from stream: ", payload[0])
 				emit_signal("error")
 			else:
+				_recv(message_type, payload[1])
 
-				if message_type == MessageType.ECHO:
-					var echo = EchoMessage.from_bytes(payload[1])
-					if echo.value == _echo.value:
-						_is_echo_setup = true
+func _recv(message_type: MessageType, payload: PackedByteArray):
+	if message_type == MessageType.ECHO:
+		var echo = EchoMessage.from_bytes(payload)
+		if echo.value == _echo.value:
+			_is_echo_setup = true
 
-					var session = SessionMessage.new()
-					session.flags = 3
-					session.name = _user_agent
-					send(MessageType.SESSION, session.to_bytes())
+		var session = SessionMessage.new()
+		session.flags = 3
+		session.name = _user_agent
+		send(MessageType.SESSION, session.to_bytes())
 
-				elif message_type == MessageType.INSTANCE:
-					var instance = InstanceMessage.from_bytes(payload[1])
-					print(instance.get_string_representation())
-					_instance = instance
-					_is_session_setup = true
+	elif message_type == MessageType.INSTANCE:
+		_instance = InstanceMessage.from_bytes(payload)
+		print(_instance.get_string_representation())
+		_is_session_setup = true
 
-				elif _is_session_setup:
-					emit_signal("message", message_type, payload[1])
+		emit_signal("connected")
+
+	elif _is_session_setup:
+		emit_signal("message", message_type, payload)
+
+func _handshake():
+	if not _is_echo_setup:
+		_echo = EchoMessage.new()
+		send(MessageType.ECHO, _echo.to_bytes())
 
 func is_setup_complete() -> bool:
 	return _is_session_setup
