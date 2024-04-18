@@ -13,6 +13,7 @@ var _status: int = 0
 var _stream: StreamPeerTCP = StreamPeerTCP.new()
 var _is_echo_setup: bool = false
 var _is_session_setup: bool = false
+var _echo: EchoMessage
 var _instance: InstanceMessage
 
 enum MessageType {
@@ -50,11 +51,34 @@ class MotionChangeSetMessage:
 class Message:
 	static func _encode_be_s16(value):
 		return [(value >> 8) & 0xFF, value & 0xFF]
+		
+	static func _encode_be_s32(value):
+		var buffer = PackedByteArray()
+		buffer.resize(4)
+
+		buffer.set(0, (value >> 24) & 0xFF)
+		buffer.set(1, (value >> 16) & 0xFF) 
+		buffer.set(2, (value >> 8) & 0xFF)
+		buffer.set(3, value & 0xFF)
+
+		return buffer
 
 	static func _decode_be_s16(byte_array):
 		if len(byte_array) != 2:
 			return -1 
 		return (byte_array[0] << 8) | byte_array[1] 
+
+	static func _decode_be_s32(byte_array):
+		if len(byte_array) != 4:
+			return -1 
+
+		var result = 0
+		result |= byte_array[0] << 24
+		result |= byte_array[1] << 16
+		result |= byte_array[2] << 8
+		result |= byte_array[3]
+		return result 
+
 
 class MotionMessage:
 	extends Message
@@ -90,6 +114,25 @@ class MotionMessage:
 					buffer.append_array(_encode_be_s16(change_set.actuator))
 					buffer.append_array(_encode_be_s16(change_set.value))
 		return buffer
+
+#############################
+
+class EchoMessage:
+	extends Message
+	
+	var value
+	
+	func _init():
+		value = randi()
+
+	func to_bytes() -> PackedByteArray:
+		return _encode_be_s32(value)
+
+	static func from_bytes(data: PackedByteArray) -> EchoMessage:
+		var echo = EchoMessage.new()
+		echo.value = _decode_be_s32(data)
+
+		return echo
 
 #############################
 
@@ -163,9 +206,8 @@ func _process(delta: float) -> void:
 				emit_signal("connected")
 
 				if not _is_echo_setup:
-					var buffer = PackedByteArray()
-					buffer.append_array([0x1, 0x2, 0x3, 0x4])
-					send(MessageType.ECHO, buffer)
+					_echo = EchoMessage.new()
+					send(MessageType.ECHO, _echo.to_bytes())
 
 			_stream.STATUS_ERROR:
 				print("Error with socket stream.")
@@ -191,21 +233,21 @@ func _process(delta: float) -> void:
 				emit_signal("error")
 			else:
 
-				if message_type == MessageType.INSTANCE:
-					print("got instance")
-					var instance = InstanceMessage.from_bytes(payload[1])
-					print(instance.get_string_representation())
-					_instance = instance
-					_is_session_setup = true
-
-				elif message_type == MessageType.ECHO:
-					print("Got an echo responds")
-					_is_echo_setup = true
+				if message_type == MessageType.ECHO:
+					var echo = EchoMessage.from_bytes(payload[1])
+					if echo.value == _echo.value:
+						_is_echo_setup = true
 					## SEND SESSION
 					var buffer_s = PackedByteArray()
 					buffer_s.append(0x3)
 					buffer_s.append_array(_user_agent.to_utf8_buffer())
 					send(MessageType.SESSION, buffer_s)
+
+				elif message_type == MessageType.INSTANCE:
+					var instance = InstanceMessage.from_bytes(payload[1])
+					print(instance.get_string_representation())
+					_instance = instance
+					_is_session_setup = true
 
 				elif _is_session_setup:
 					emit_signal("message", message_type, payload[1])
