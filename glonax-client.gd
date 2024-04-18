@@ -159,6 +159,25 @@ class SessionMessage:
 
 #############################
 
+class RequestMessage:
+	extends Message
+	
+	var message_type: MessageType
+
+	func to_bytes() -> PackedByteArray:
+		var buffer = PackedByteArray()
+		buffer.append(message_type)
+
+		return buffer
+
+	static func from_bytes(data: PackedByteArray) -> RequestMessage:
+		var request = RequestMessage.new()
+		request.message_type = data.decode_u8(0)
+
+		return request
+
+#############################
+
 class InstanceMessage:
 	extends Message
 
@@ -288,10 +307,9 @@ func connect_to_host(host: String, port: int) -> void:
 		emit_signal("error")
 
 func send_request(message_type: MessageType):
-	var buffer = PackedByteArray()
-	buffer.append(message_type)
-
-	send(MessageType.REQUEST, buffer)
+	var request = RequestMessage.new()
+	request.message_type = message_type
+	send(MessageType.REQUEST, request.to_bytes())
 
 func send(message_type: MessageType, payload: PackedByteArray) -> bool:
 	if _status != _stream.STATUS_CONNECTED:
