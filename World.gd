@@ -24,7 +24,7 @@ var joystick_orientation = {
 var counter = 0
 
 const Client = preload("res://glonax-client.gd")
-var _client: Client = Client.new()
+var _client: Client = Client.new("godot/4.2")
 
 enum Direction {
 	LEFT = 0,
@@ -118,10 +118,12 @@ func handle_slew(axis_value: float):
 func handle_arm(axis_value: float):
 	print("handle_arm")
 	
-#func max_boom(direction: Direction):
-	#match direction:
-		#Direction.LEFT:
-			#print("Going left")
+func max_boom(direction: Direction):
+	match direction:
+		Direction.LEFT:
+			print("Going left")
+
+			### MOTION: CHANGE
 			#var motion = Client.MotionMessage.new()
 			#motion.command = Client.CHANGE
 			#
@@ -131,10 +133,18 @@ func handle_arm(axis_value: float):
 			#
 			#motion.value_list = [change_set]
 			#
-			#print("Motion bytes: ", motion.to_bytes())
 			#_client.send(Client.MessageType.MOTION, motion.to_bytes())
-			#
-		#Direction.RIGHT:
-			#print("Going right")
-		#_:
-			#print("Unknown direction")
+
+			### MOTION: STOP ALL
+			#var motion = Client.MotionMessage.stop_all()
+			#_client.send(Client.MessageType.MOTION, motion.to_bytes())
+
+			### MOTION: RESUME ALL
+			#var motion = Client.MotionMessage.resume_all()
+			#_client.send(Client.MessageType.MOTION, motion.to_bytes())
+
+			
+		Direction.RIGHT:
+			print("Going right")
+		_:
+			print("Unknown direction")
