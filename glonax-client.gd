@@ -309,6 +309,14 @@ class EngineMessage:
 	var actual_engine
 	var rpm
 
+	func to_bytes() -> PackedByteArray:
+		var buffer = PackedByteArray()
+		buffer.append(driver_demand)
+		buffer.append(actual_engine)
+		buffer.append_array(_encode_be_s16(rpm))
+
+		return buffer
+
 	static func from_bytes(data: PackedByteArray) -> EngineMessage:
 		var engine = EngineMessage.new()
 		engine.driver_demand = data.decode_u8(0)
@@ -343,6 +351,41 @@ class GNSSMessage:
 		gnss.satellites = data.decode_u8(100)
 
 		return gnss
+
+#############################
+
+enum ControlType {
+	ENGINE_REQUEST = 0x1,
+	ENGINE_SHUTDOWN = 0x2,
+	HYDRAULIC_QUICK_DISCONNECT = 0x5,
+	HYDRAULIC_LOCK = 0x6,
+	MACHINE_SHUTDOWN = 0x1B,
+	MACHINE_ILLUMINATION = 0x1C,
+	MACHINE_LIGHTS = 0x1D,
+	MACHINE_HORN = 0x1E,
+}
+
+class ControlMessage:
+	extends Message
+
+	var control_type: ControlType
+	var value
+
+	func to_bytes() -> PackedByteArray:
+		var buffer = PackedByteArray()
+		buffer.append(control_type)
+		if control_type == ControlType.ENGINE_REQUEST:
+			buffer.append_array(_encode_be_s16(value))
+
+		return buffer
+
+	static func from_bytes(data: PackedByteArray) -> ControlMessage:
+		var control = ControlMessage.new()
+		control.control_type = data.decode_u8(0)
+		if control.control_type == ControlType.ENGINE_REQUEST:
+			control.value = _decode_be_s16(data.slice(1, 3))
+
+		return control
 
 #############################
 
