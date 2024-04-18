@@ -323,6 +323,29 @@ class EngineMessage:
 
 #############################
 
+class GNSSMessage:
+	extends Message
+
+	var location_lat
+	var location_long
+	var altitude
+	var speed
+	var heading
+	var satellites
+
+	static func from_bytes(data: PackedByteArray) -> GNSSMessage:
+		var gnss = GNSSMessage.new()
+		#gnss.location_lat = TODO: Decode BE float
+		#gnss.location_long = TODO: Decode BE float
+		#gnss.altitude = TODO: Decode BE float
+		#gnss.speed = TODO: Decode BE float
+		#gnss.heading = TODO: Decode BE float
+		gnss.satellites = data.decode_u8(100)
+
+		return gnss
+
+#############################
+
 func _init(user_agent: String = "godot"):
 	_stream.set_big_endian(true)
 	_stream.set_no_delay(true)
