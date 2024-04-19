@@ -93,13 +93,8 @@ func _ready():
 	
 	add_child(_client)
 
-	# TODO: Error handling	
-	var parts = Global.hostname.split(":")
-	if parts.size() == 2:
-		var hostname = parts[0]
-		var port = parts[1].to_int()
-		_client.connect_to_host(hostname, port)
-	
+	_client.connect_to_host(Global.host, Global.port)
+
 func _handle_client_connected() -> void:
 	print("Client is connected.")
 
