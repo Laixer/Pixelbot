@@ -166,7 +166,7 @@ func _input(event):
 		if event.device == joystick_orientation["right_joystick"]:
 			if event.button_index == 9: # Middle right
 				print("stop motor")
-				request_stop_motor()
+				request_stop_motion()
 			elif event.button_index == 10: # Bottom left
 				print("start motor")				
 				request_start_motor()
@@ -256,40 +256,38 @@ func handle_arm(axis_value: float):
 		#_:
 			#print("Unknown direction")
 
-func _on_start_motor_pressed():
-	request_start_motor()
-	
 func request_start_motor():
 	var control = Client.ControlMessage.new()
 	control.control_type = Client.ControlType.ENGINE_REQUEST
 	control.value = 700
 	_client.send(Client.MessageType.CONTROL, control.to_bytes())
 
-func _on_stop_motor_pressed():
-	request_stop_motor()
-	
-func request_stop_motor():
-	var motion = Client.MotionMessage.stop_all()
-	_client.send(Client.MessageType.MOTION, motion.to_bytes())
-
-func _on_shutdown_pressed():
-	request_shutdown()
-	
 func request_shutdown():
 	var control = Client.ControlMessage.new()
 	control.control_type = Client.ControlType.ENGINE_SHUTDOWN
 	_client.send(Client.MessageType.CONTROL, control.to_bytes())
 
+func request_stop_motion():
+	var motion = Client.MotionMessage.stop_all()
+	_client.send(Client.MessageType.MOTION, motion.to_bytes())
+
+func request_work_mode(work_mode: WorkModes):
+	$"Work mode slider/Work mode label".text = "Requested Work Mode: " + WorkModeNames[work_mode]
+	var control = Client.ControlMessage.new()
+	control.control_type = Client.ControlType.ENGINE_REQUEST
+	control.value = WorkModeRPM[work_mode]
+	_client.send(Client.MessageType.CONTROL, control.to_bytes())
+
+func _on_stop_motion_pressed():
+	request_stop_motion()
+
+func _on_start_motor_pressed():
+	request_start_motor()
+
+func _on_shutdown_pressed():
+	request_shutdown()
+
 func _on_work_mode_slider_value_changed(value):
 	var work_mode = int(value)
 	if work_mode in WorkModes.values():
 		request_work_mode(work_mode)
-
-func request_work_mode(work_mode: WorkModes):
-	$"Work mode slider/Work mode label".text = "Requested Work Mode: " + WorkModeNames[work_mode]
-	if work_mode != WorkModes.NONE:
-		var control = Client.ControlMessage.new()
-		control.control_type = Client.ControlType.ENGINE_REQUEST
-		control.value = WorkModeRPM[work_mode]
-		_client.send(Client.MessageType.CONTROL, control.to_bytes())
-

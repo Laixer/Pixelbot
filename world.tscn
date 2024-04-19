@@ -45,24 +45,24 @@ offset_right = 1600.0
 offset_bottom = 776.0
 
 [node name="Start motor" type="Button" parent="."]
-offset_left = 745.2
-offset_top = 966.2
-offset_right = 863.2
-offset_bottom = 1033.2
+offset_left = 960.0
+offset_top = 960.0
+offset_right = 1078.0
+offset_bottom = 1027.0
 text = "Start motor"
 
 [node name="Stop motor" type="Button" parent="."]
-offset_left = 903.2
-offset_top = 966.2
-offset_right = 1021.2
-offset_bottom = 1033.2
-text = "Stop motor"
+offset_left = 672.0
+offset_top = 960.0
+offset_right = 790.0
+offset_bottom = 1027.0
+text = "Stop motion"
 
 [node name="Shutdown" type="Button" parent="."]
-offset_left = 1059.2
-offset_top = 966.2
-offset_right = 1177.2
-offset_bottom = 1033.2
+offset_left = 1088.0
+offset_top = 960.0
+offset_right = 1206.0
+offset_bottom = 1027.0
 text = "Shutdown"
 
 [node name="Work mode slider" type="HSlider" parent="."]
@@ -70,7 +70,7 @@ offset_left = 880.0
 offset_top = 896.0
 offset_right = 1208.0
 offset_bottom = 960.0
-max_value = 10.0
+max_value = 9.0
 
 [node name="Work mode label" type="Label" parent="Work mode slider"]
 layout_mode = 0
@@ -81,7 +81,6 @@ offset_bottom = -9.0
 text = "Requested Work Mode:"
 
 [connection signal="pressed" from="Start motor" to="." method="_on_start_motor_pressed"]
-[connection signal="pressed" from="Stop motor" to="." method="_on_stop_motor_pressed"]
+[connection signal="pressed" from="Stop motor" to="." method="_on_stop_motion_pressed"]
 [connection signal="pressed" from="Shutdown" to="." method="_on_shutdown_pressed"]
-[connection signal="changed" from="Work mode slider" to="." method="_on_work_mode_slider_changed"]
 [connection signal="value_changed" from="Work mode slider" to="." method="_on_work_mode_slider_value_changed"]
