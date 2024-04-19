@@ -11,12 +11,13 @@ func _ready():
 
 func _handle_client_connected() -> void:
 	$ConnectionStatus.text = "Connected to " + Global.host + ":" + str(Global.port)
+	get_tree().change_scene_to_file("res://world.tscn")
 
 func _handle_client_error() -> void:
 	$ConnectionStatus.text = "Failed to connect to " + Global.host + ":" + str(Global.port)
 
 func parse_hostname(hostname: String):
-	var parts = hostname.split(":")
+	var parts = hostname.strip_edges(true, false).split(":")
 	if parts.size() == 1:
 		return { "host": hostname, "port": 30051} 
 	elif parts.size() == 2:
@@ -36,7 +37,6 @@ func _on_connect_pressed():
 		Global.host = result.host
 		Global.port = result.port
 		_client.connect_to_host(result.host, result.port)
-		#get_tree().change_scene_to_file("res://world.tscn")
 	else:
 		$ConnectionStatus.text = "Invalid hostname and port"
 		$HostnameInput.editable = true

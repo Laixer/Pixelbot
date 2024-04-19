@@ -433,6 +433,10 @@ func _process(delta: float) -> void:
 			else:
 				_recv(message_type, payload[1])
 
+func _exit_tree():
+	# TODO: Send connection shutdown
+	pass
+
 func _recv(message_type: MessageType, payload: PackedByteArray):
 	if message_type == MessageType.ECHO:
 		var echo = EchoMessage.from_bytes(payload)
@@ -463,10 +467,13 @@ func is_setup_complete() -> bool:
 	return _is_session_setup
 
 func connect_to_host(host: String, port: int) -> void:
-	print("Connecting to %s:%d" % [host, port])
+	if _status == _stream.STATUS_CONNECTED:
+		print("Error: Client is already connected")
+		return
 
 	# Reset status so we can tell if it changes to error again.
 	_status = _stream.STATUS_NONE
+	print("Connecting to %s:%d" % [host, port])
 	if _stream.connect_to_host(host, port) != OK:
 		print("Error connecting to host.")
 		emit_signal("error")
