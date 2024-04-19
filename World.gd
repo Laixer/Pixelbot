@@ -97,6 +97,9 @@ func _ready():
 
 func _handle_client_connected() -> void:
 	print("Client is connected.")
+	$Hostname.text = "Connected to: " + Global.host + ":" + str(Global.port)
+	$Instance.text = "Instance ID: " + _client._instance.instance_id.hex_encode()
+	$Name.text = "Name: " + _client._instance.name
 
 func _handle_client_disconnected() -> void:
 	print("Client disconnected from server.")
