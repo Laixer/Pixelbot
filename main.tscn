@@ -6,18 +6,25 @@
 script = ExtResource("1_ta1so")
 
 [node name="Play" type="Button" parent="."]
-offset_left = 36.0
-offset_top = 55.0
-offset_right = 196.0
-offset_bottom = 148.0
-text = "Play"
+offset_left = 256.0
+offset_top = 64.0
+offset_right = 360.0
+offset_bottom = 101.0
+text = "Connect"
 
 [node name="Quit" type="Button" parent="."]
-offset_left = 30.0
+offset_left = 32.0
 offset_top = 176.0
-offset_right = 196.0
+offset_right = 198.0
 offset_bottom = 280.0
 text = "Quit"
+
+[node name="HostnameInput" type="TextEdit" parent="."]
+offset_left = 30.0
+offset_top = 64.0
+offset_right = 232.0
+offset_bottom = 101.0
+text = "localhost:30051"
 
 [connection signal="pressed" from="Play" to="." method="_on_play_pressed"]
 [connection signal="pressed" from="Quit" to="." method="_on_quit_pressed"]

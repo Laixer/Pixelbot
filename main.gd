@@ -7,4 +7,5 @@ func _on_quit_pressed():
 
 
 func _on_play_pressed():
+	Global.hostname = $HostnameInput.text
 	get_tree().change_scene_to_file("res://world.tscn")

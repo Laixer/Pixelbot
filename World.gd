@@ -1,8 +1,5 @@
 extends Node2D
 
-const HOST: String = "10.0.20.40"
-const PORT: int = 30051
-
 # Speed at which the player moves, adjust as needed.
 #var player_speed = 200
 # Initialize movement vector.
@@ -23,7 +20,7 @@ var joystick_orientation = {
 
 var counter = 0
 
-const Client = preload ("res://glonax-client.gd")
+const Client = preload("res://glonax-client.gd")
 var _client: Client = Client.new("godot/4.2")
 
 enum Direction {
@@ -95,8 +92,13 @@ func _ready():
 	_client.message.connect(_handle_client_message)
 	
 	add_child(_client)
-	
-	_client.connect_to_host(HOST, PORT)
+
+	# TODO: Error handling	
+	var parts = Global.hostname.split(":")
+	if parts.size() == 2:
+		var hostname = parts[0]
+		var port = parts[1].to_int()
+		_client.connect_to_host(hostname, port)
 	
 func _handle_client_connected() -> void:
 	print("Client is connected.")
