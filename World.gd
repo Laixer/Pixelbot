@@ -32,7 +32,6 @@ enum Direction {
 }
 
 enum WorkModes {
-	NONE = 0,
 	IDLE_1,
 	IDLE_2,
 	FINE_1,
@@ -46,17 +45,16 @@ enum WorkModes {
 }
 
 const WorkModeNames = {
-	WorkModes.NONE: "NONE",
-	WorkModes.IDLE_1: "IDLE_1",
-	WorkModes.IDLE_2: "IDLE_2",
-	WorkModes.FINE_1: "FINE_1",
-	WorkModes.FINE_2: "FINE_2",
-	WorkModes.FINE_3: "FINE_3",
-	WorkModes.GENERAL_1: "GENERAL_1",
-	WorkModes.GENERAL_2: "GENERAL_2",
-	WorkModes.GENERAL_3: "GENERAL_3",
-	WorkModes.HIGH: "HIGH",
-	WorkModes.POWER_MAX: "POWER_MAX"
+	WorkModes.IDLE_1: "Idle 1",
+	WorkModes.IDLE_2: "Idle 2",
+	WorkModes.FINE_1: "Fine 1",
+	WorkModes.FINE_2: "Fine 2",
+	WorkModes.FINE_3: "Fine 3",
+	WorkModes.GENERAL_1: "General 1",
+	WorkModes.GENERAL_2: "General 2",
+	WorkModes.GENERAL_3: "General 3",
+	WorkModes.HIGH: "High",
+	WorkModes.POWER_MAX: "Power Boost"
 }
 
 enum {
