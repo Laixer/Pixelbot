@@ -115,6 +115,8 @@ func _handle_client_message(message_type: Client.MessageType, data: PackedByteAr
 		#print(engine.get_string_representation())
 		$"Engine RPM".text = "Engine RPM: " + str(engine.rpm)
 		#$"Engine RPM".text = str(engine.rpm)
+		# TODO: if rpm == 0 Set work mode disabled
+		# TODO: if rpm == 0 Set shutdown disabled
 	
 func _process(delta):
 	#var player = get_node("Player") # Adjust the path if necessary.

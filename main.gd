@@ -15,6 +15,7 @@ func _handle_client_connected() -> void:
 
 func _handle_client_error() -> void:
 	$ConnectionStatus.text = "Failed to connect to " + Global.host + ":" + str(Global.port)
+	$HostnameInput.editable = true
 
 func parse_hostname(hostname: String):
 	var parts = hostname.strip_edges(true, false).split(":")
