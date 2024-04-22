@@ -135,10 +135,8 @@ class MotionMessage:
 
 		match command:
 			STRAIGHT_DRIVE:
-				buffer.append(command)
 				buffer.append_array(_encode_be_s16(value))
 			CHANGE:
-				buffer.append(command)
 				buffer.append(value_list.size())
 				for change_set in value_list:
 					buffer.append_array(_encode_be_s16(change_set.actuator))
