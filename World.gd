@@ -113,7 +113,7 @@ func _handle_client_message(message_type: Client.MessageType, data: PackedByteAr
 		var engine = Client.EngineMessage.from_bytes(data)
 		#engine.from_bytes(data)
 		#print(engine.get_string_representation())
-		$"Engine RPM".text = "Engine RPM: " + str(engine.rpm)
+		$"EngineRPM".text = "Engine RPM: " + str(engine.rpm)
 		#$"Engine RPM".text = str(engine.rpm)
 		# TODO: if rpm == 0 Set work mode disabled
 		# TODO: if rpm == 0 Set shutdown disabled
@@ -167,9 +167,9 @@ func _input(event):
 	elif event is InputEventJoypadButton:
 		if event.device == joystick_orientation["right_joystick"]:
 			if event.button_index == 9: # Middle right
-				toggle_button($"Stop motor")
+				toggle_button($"StopMotor")
 			elif event.button_index == 10: # Bottom left
-				toggle_button($"Start motor")
+				toggle_button($"StartMotor")
 			elif event.button_index == 11: # Bottom right
 				toggle_button($"Shutdown")
 
@@ -265,7 +265,7 @@ func handle_arm(axis_value: float):
 func request_start_motor():
 	var control = Client.ControlMessage.new()
 	control.control_type = Client.ControlType.ENGINE_REQUEST
-	control.value = 700
+	control.value = 700 # Start RPM motor
 	_client.send(Client.MessageType.CONTROL, control.to_bytes())
 
 func request_shutdown():
@@ -278,7 +278,7 @@ func request_stop_motion():
 	_client.send(Client.MessageType.MOTION, motion.to_bytes())
 
 func request_work_mode(work_mode: WorkModes):
-	$"Work mode slider/Work mode label".text = "Requested Work Mode: " + WorkModeNames[work_mode]
+	$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeNames[work_mode]
 	var control = Client.ControlMessage.new()
 	control.control_type = Client.ControlType.ENGINE_REQUEST
 	control.value = WorkModeRPM[work_mode]
