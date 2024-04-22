@@ -49,6 +49,7 @@ offset_left = 960.0
 offset_top = 960.0
 offset_right = 1078.0
 offset_bottom = 1027.0
+toggle_mode = true
 text = "Start motor"
 
 [node name="Stop motor" type="Button" parent="."]
@@ -56,6 +57,7 @@ offset_left = 672.0
 offset_top = 960.0
 offset_right = 790.0
 offset_bottom = 1027.0
+toggle_mode = true
 text = "Stop motion"
 
 [node name="Shutdown" type="Button" parent="."]
@@ -63,6 +65,7 @@ offset_left = 1088.0
 offset_top = 960.0
 offset_right = 1206.0
 offset_bottom = 1027.0
+toggle_mode = true
 text = "Shutdown"
 
 [node name="Work mode slider" type="HSlider" parent="."]
