@@ -156,25 +156,29 @@ func _input(event):
 			elif event.axis == 3: # Slider
 				var work_mode = map_float_to_int_range(event.axis_value, -1.0, 1.0, 1, 10)
 				if work_mode in WorkModes.values():
-					request_work_mode(work_mode)	
+					request_work_mode(work_mode)
 		elif event.device == joystick_orientation["left_joystick"]:
 			if event.axis == 0: # X axis
 				$JoystickInnerLeft.position.x = $JoystickInnerLeft.start_position.x + event.axis_value * joystick_max_handle_distance
 				handle_slew(event.axis_value)
 			elif event.axis == 1: # Y axis
 				$JoystickInnerLeft.position.y = $JoystickInnerLeft.start_position.y + event.axis_value * joystick_max_handle_distance
-				handle_arm(event.axis_value)			
+				handle_arm(event.axis_value)
 	elif event is InputEventJoypadButton:
 		if event.device == joystick_orientation["right_joystick"]:
 			if event.button_index == 9: # Middle right
-				print("stop motor")
-				request_stop_motion()
+				toggle_button($"Stop motor")
 			elif event.button_index == 10: # Bottom left
-				print("start motor")				
-				request_start_motor()
+				toggle_button($"Start motor")
 			elif event.button_index == 11: # Bottom right
-				print("shutdown")
-				request_shutdown()
+				toggle_button($"Shutdown")
+
+func toggle_button(button):
+	if button.is_pressed():
+		button.set_pressed_no_signal(false)
+	else:
+		button.set_pressed_no_signal(true)
+		button.emit_signal("pressed")
 					
 func handle_attachment(axis_value: float):
 	print("handle_attachment ", axis_value)
@@ -281,12 +285,15 @@ func request_work_mode(work_mode: WorkModes):
 	_client.send(Client.MessageType.CONTROL, control.to_bytes())
 
 func _on_stop_motion_pressed():
+	print("stop motor")
 	request_stop_motion()
 
 func _on_start_motor_pressed():
+	print("start motor")
 	request_start_motor()
 
 func _on_shutdown_pressed():
+	print("shutdown")
 	request_shutdown()
 
 func _on_work_mode_slider_value_changed(value):
