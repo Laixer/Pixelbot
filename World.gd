@@ -101,6 +101,8 @@ func _ready():
 	#var joystick_handle = get_node("JoystickInnerRight")
 	#joystick_start_position = joystick_handle.starting_position
 	#joystick_handle.position = joystick_start_position
+	$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: None"
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
 	_client.connected.connect(_handle_client_connected)
 	_client.disconnected.connect(_handle_client_disconnected)
@@ -111,8 +113,6 @@ func _ready():
 
 	#TODO: Connect once, not once per scene
 	_client.connect_to_host(Global.host, Global.port)
-	
-	$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: None"
 
 func _handle_client_connected() -> void:
 	print("Client is connected.")
@@ -202,7 +202,7 @@ func handle_shutdown(pressed: bool):
 				set_state(ExcavatorState.SHUTDOWN)
 				$Shutdown.set_pressed(true)
 				$"WorkModeSlider/WorkModeLabel".text = "Shutdown"
-				$WorkModeSlider.value = WorkModes.IDLE_1	
+				$WorkModeSlider.value = WorkModes.IDLE_1
 				$WorkModeSlider.editable = false
 	else:
 		$Shutdown.set_pressed(false)
@@ -213,7 +213,7 @@ func handle_start(pressed: bool):
 			print("start")
 			$WorkModeSlider.editable = true
 			if request_start_motor():
-				set_state(ExcavatorState.STARTED)			
+				set_state(ExcavatorState.STARTED)
 				$StartMotor.set_pressed(true)
 	else:
 		$StartMotor.set_pressed(false)
@@ -327,7 +327,7 @@ func request_work_mode(work_mode: WorkModes) -> bool:
 	return _client.send(Client.MessageType.CONTROL, control.to_bytes())
 
 func change_work_mode_text(work_mode: WorkModes):
-	$WorkModeSlider.value = work_mode	
+	$WorkModeSlider.value = work_mode
 	$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeNames[work_mode]
 	
 # func _on_stop_motion_pressed():
@@ -389,9 +389,8 @@ func handle_work_mode(work_mode_value: int):
 		return
 	
 	if work_mode_value > (excavatorState["work_mode"] + 1) or work_mode_value < (excavatorState["work_mode"] - 1):
-		return 
+		return
 	   
 	if request_work_mode(work_mode_value):
 		change_work_mode_text(work_mode_value)
 		excavatorState["work_mode"] = work_mode_value
-		
