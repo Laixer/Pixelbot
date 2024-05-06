@@ -1,9 +1,12 @@
-[gd_scene load_steps=5 format=3 uid="uid://bkwjduy3nskeg"]
+[gd_scene load_steps=7 format=3 uid="uid://bkwjduy3nskeg"]
 
 [ext_resource type="Script" path="res://World.gd" id="1_ufefb"]
 [ext_resource type="Texture2D" uid="uid://bklny0kr2ebs2" path="res://VirtualJoystickPack/JoystickSplitted.png" id="3_m5igp"]
 [ext_resource type="Script" path="res://JoystickInner.gd" id="4_ec0kx"]
 [ext_resource type="Texture2D" uid="uid://du255sudo8tl7" path="res://VirtualJoystickPack/LargeHandleFilled.png" id="4_sy0pa"]
+[ext_resource type="Script" path="res://ExcavatorCam.gd" id="6_3683u"]
+
+[sub_resource type="VideoStreamTheora" id="VideoStreamTheora_bd2pb"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_ufefb")
@@ -39,10 +42,13 @@ text = "Engine RPM:"
 horizontal_alignment = 1
 
 [node name="ExcavatorCam" type="VideoStreamPlayer" parent="."]
-offset_left = 320.0
-offset_top = 56.0
-offset_right = 1600.0
-offset_bottom = 776.0
+offset_left = 312.0
+offset_top = 64.0
+offset_right = 1592.0
+offset_bottom = 784.0
+stream = SubResource("VideoStreamTheora_bd2pb")
+expand = true
+script = ExtResource("6_3683u")
 
 [node name="StartMotor" type="Button" parent="."]
 offset_left = 960.0
@@ -52,7 +58,7 @@ offset_bottom = 1027.0
 toggle_mode = true
 text = "Start motor"
 
-[node name="StopMotor" type="Button" parent="."]
+[node name="StopMotion" type="Button" parent="."]
 offset_left = 672.0
 offset_top = 960.0
 offset_right = 790.0
@@ -73,7 +79,9 @@ offset_left = 880.0
 offset_top = 896.0
 offset_right = 1208.0
 offset_bottom = 960.0
-max_value = 9.0
+min_value = 1.0
+max_value = 10.0
+value = 1.0
 
 [node name="WorkModeLabel" type="Label" parent="WorkModeSlider"]
 layout_mode = 0
@@ -105,6 +113,8 @@ offset_bottom = 39.0
 text = "Connected to:"
 
 [connection signal="pressed" from="StartMotor" to="." method="_on_start_motor_pressed"]
-[connection signal="pressed" from="StopMotor" to="." method="_on_stop_motion_pressed"]
+[connection signal="button_down" from="StopMotion" to="." method="_on_stop_motor_button_down"]
+[connection signal="button_up" from="StopMotion" to="." method="_on_stop_motor_button_up"]
+[connection signal="pressed" from="StopMotion" to="." method="_on_stop_motion_pressed"]
 [connection signal="pressed" from="Shutdown" to="." method="_on_shutdown_pressed"]
 [connection signal="value_changed" from="WorkModeSlider" to="." method="_on_work_mode_slider_value_changed"]
