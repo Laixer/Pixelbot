@@ -55,6 +55,7 @@ offset_left = 960.0
 offset_top = 960.0
 offset_right = 1078.0
 offset_bottom = 1027.0
+mouse_filter = 2
 toggle_mode = true
 text = "Start motor"
 
@@ -63,6 +64,7 @@ offset_left = 672.0
 offset_top = 960.0
 offset_right = 790.0
 offset_bottom = 1027.0
+mouse_filter = 2
 toggle_mode = true
 text = "Stop motion"
 
@@ -71,6 +73,7 @@ offset_left = 1088.0
 offset_top = 960.0
 offset_right = 1206.0
 offset_bottom = 1027.0
+mouse_filter = 2
 toggle_mode = true
 text = "Shutdown"
 
@@ -79,6 +82,7 @@ offset_left = 880.0
 offset_top = 896.0
 offset_right = 1208.0
 offset_bottom = 960.0
+mouse_filter = 2
 min_value = 1.0
 max_value = 10.0
 value = 1.0
