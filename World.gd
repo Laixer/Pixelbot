@@ -1,16 +1,6 @@
 extends Node2D
 
-# Speed at which the player moves, adjust as needed.
-#var player_speed = 200
-# Initialize movement vector.
-#var player_movement = Vector2.ZERO
-
-#var joystick_start_position = Vector2()
-var joystick_axis = {
-	"left_joystick": Vector2(),
-	"right_joystick": Vector2()
-}
-const joystick_max_handle_distance = 25
+const JOYSTICK_MAX_HANDLE_DISTANCE = 25
 
 #TODO: Need calibration and init
 var joystick_orientation = {
@@ -30,19 +20,49 @@ enum ExcavatorState {
 	SHUTDOWN
 }
 
+# enum Motion {
+# 	# Stop all motion until resumed.
+# 	StopAll,
+# 	# Resume all motion.
+# 	ResumeAll,
+# 	# Reset the motion state machine.
+# 	ResetAll,
+# 	# Drive straight forward or backwards.
+# 	StraightDrive,
+# 	# Change motion on actuators.
+# 	Change,
+# }
+
+# enum EngineStatus {
+# 	# Engine is disabled.
+# 	Disabled = 0xFF,
+# 	# Controller Area Network is down.
+# 	NetworkDown = 0x00,
+# 	# Engine message timeout.
+# 	MessageTimeout = 0x01,
+# 	# Engine is nominal.
+# 	Nominal = 0x02,
+# }
+
+# enum EngineState {
+# 	# Engine is shutdown, readytostart.
+# 	NoRequest,
+# 	# Engine is startingup.
+# 	Starting,
+# 	# Engine is shuttingdown.
+# 	Stopping,
+# 	# Engine is running.
+# 	Request,
+# }
+
+# TODO: Use glonax to poll state instead 
 var excavatorState = {
 	"previous_state": ExcavatorState.UNKNOWN,
 	"current_state": ExcavatorState.UNKNOWN,
-	"WorkMode": WorkModes.UNKNOWN
-}
-
-enum Direction {
-	LEFT = 0,
-	RIGHT = 1
+	"WorkMode": WorkModes.IDLE_1
 }
 
 enum WorkModes {
-	UNKNOWN,
 	IDLE_1,
 	IDLE_2,
 	FINE_1,
@@ -56,7 +76,6 @@ enum WorkModes {
 }
 
 const WorkModeNames = {
-	WorkModes.UNKNOWN: "UNKNOWN",
 	WorkModes.IDLE_1: "Idle 1",
 	WorkModes.IDLE_2: "Idle 2",
 	WorkModes.FINE_1: "Fine 1",
@@ -83,7 +102,6 @@ enum {
 }
 
 const WorkModeRPM = {
-	WorkModes.UNKNOWN: 0,
 	WorkModes.IDLE_1: IDLE_1,
 	WorkModes.IDLE_2: IDLE_2,
 	WorkModes.FINE_1: FINE_1,
@@ -98,11 +116,9 @@ const WorkModeRPM = {
 
 func _ready():
 	# Ensure the handle is centered at start (neutral position).
-	#var joystick_handle = get_node("JoystickInnerRight")
-	#joystick_start_position = joystick_handle.starting_position
-	#joystick_handle.position = joystick_start_position
 	$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: None"
-	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	#$Shutdown.disabled = true
+	#Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
 	_client.connected.connect(_handle_client_connected)
 	_client.disconnected.connect(_handle_client_disconnected)
@@ -128,35 +144,17 @@ func _handle_client_error() -> void:
 	
 func _handle_client_message(message_type: Client.MessageType, data: PackedByteArray) -> void:
 	#print("We got message: " + str(message_type) + " with data: " + str(data))
+	# print(message_type)
 	if message_type == Client.MessageType.ENGINE:
 		var engine = Client.EngineMessage.from_bytes(data)
-		#engine.from_bytes(data)
-		#print(engine.get_string_representation())
 		$"EngineRPM".text = "Engine RPM: " + str(engine.rpm)
-		#$"Engine RPM".text = str(engine.rpm)
-		# TODO: if rpm == 0 Set work mode disabled
-		# TODO: if rpm == 0 Set shutdown disabled
 	
 func _process(delta):
-	#var player = get_node("Player") # Adjust the path if necessary.
-	#var joystick_handle = get_node("JoystickInnerRight")
-	#joystick_handle.position = joystick_handle.start_position + joystick_axis["right_joystick"] * joystick_max_handle_distance
-	#print(joystick_handle.position)
-	#var joystick_handle_right = get_node("JoystickInnerRight")
-	#$JoystickInnerRight.position = $JoystickInnerRight.start_position + joystick_axis["right_joystick"] * joystick_max_handle_distance
-
-	#var joystick_handle_left = get_node("JoystickInnerLeft")
-	#$JoystickInnerLeft.position = $JoystickInnerLeft.start_position + joystick_axis["left_joystick"] * joystick_max_handle_distance
-	
 	if counter == 3:
 		counter = 0
 		_client.send_request(Client.MessageType.ENGINE)
 	
 	counter += 1
-	
-#_on_start_motor_pressed():
-	#var motion = Client.MotionMessage.new()
-	#_client.send(Client.MessageType.START, motion.to_bytes())
 	
 func map_float_to_int_range(value: float, min_float: float, max_float: float, min_int: int, max_int: int) -> int:
 	var normalized = (value - min_float) / (max_float - min_float)
@@ -167,22 +165,20 @@ func _input(event):
 	if event is InputEventJoypadMotion:
 		if event.device == joystick_orientation["right_joystick"]:
 			if event.axis == 0: # X axis
-				$JoystickInnerRight.position.x = $JoystickInnerRight.start_position.x + event.axis_value * joystick_max_handle_distance
+				$JoystickInnerRight.position.x = $JoystickInnerRight.start_position.x + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 				handle_attachment(event.axis_value)
 			elif event.axis == 1: # Y axis
-				$JoystickInnerRight.position.y = $JoystickInnerRight.start_position.y + event.axis_value * joystick_max_handle_distance
+				$JoystickInnerRight.position.y = $JoystickInnerRight.start_position.y + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 				handle_boom(event.axis_value)
 			elif event.axis == 3: # Slider
-				var work_mode = map_float_to_int_range(event.axis_value, 1.0, -1.0, 1, 10)
+				var work_mode = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 9)
 				handle_work_mode(work_mode)
-				# if $WorkModeSlider.editable:
-				# 	$WorkModeSlider.value = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 9)
 		elif event.device == joystick_orientation["left_joystick"]:
 			if event.axis == 0: # X axis
-				$JoystickInnerLeft.position.x = $JoystickInnerLeft.start_position.x + event.axis_value * joystick_max_handle_distance
+				$JoystickInnerLeft.position.x = $JoystickInnerLeft.start_position.x + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 				handle_slew(event.axis_value)
 			elif event.axis == 1: # Y axis
-				$JoystickInnerLeft.position.y = $JoystickInnerLeft.start_position.y + event.axis_value * joystick_max_handle_distance
+				$JoystickInnerLeft.position.y = $JoystickInnerLeft.start_position.y + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 				handle_arm(event.axis_value)
 	elif event is InputEventJoypadButton:
 		if event.device == joystick_orientation["right_joystick"]:
@@ -196,7 +192,7 @@ func _input(event):
 
 func handle_shutdown(pressed: bool):
 	if pressed:
-		if get_state() == ExcavatorState.STARTED or get_state() == ExcavatorState.UNKNOWN:
+		if get_state() != ExcavatorState.SHUTDOWN:
 			print("shutdown")
 			if request_shutdown():
 				set_state(ExcavatorState.SHUTDOWN)
@@ -217,15 +213,6 @@ func handle_start(pressed: bool):
 				$StartMotor.set_pressed(true)
 	else:
 		$StartMotor.set_pressed(false)
-	# $WorkModeSlider.editable = true
-	# $WorkModeSlider.value = WorkModes.IDLE_1
-
-# func toggle_button(button):
-# 	if button.is_pressed():
-# 		button.set_pressed_no_signal(false)
-# 	else:
-# 		button.set_pressed_no_signal(true)
-# 		button.emit_signal("pressed")
 
 func handle_stop(pressed: bool):
 	if pressed:
@@ -329,57 +316,6 @@ func request_work_mode(work_mode: WorkModes) -> bool:
 func change_work_mode_text(work_mode: WorkModes):
 	$WorkModeSlider.value = work_mode
 	$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeNames[work_mode]
-	
-# func _on_stop_motion_pressed():
-# 	print("stop motor")
-# 	request_stop_motion()
-# 	state = ExcavatorState.STOPPED
-# 	#$"WorkModeSlider/WorkModeLabel".text = "Stopped"
-# 	#$WorkModeSlider.editable = false	
-
-# func _on_stop_motion_button_up():
-# 	print("resume motor")
-# 	request_stop_motion()
-# 	#state = ExcavatorState.STOPPED
-# 	pass # Replace with function body.
-
-# func _on_stop_motion_button_down():
-# 	print("stop motor")
-# 	request_stop_motion()
-# 	state = ExcavatorState.STOPPED
-# 	pass # Replace with function body.
-
-# func _on_start_motor_pressed():
-# 	print("start motor")
-# 	$WorkModeSlider.editable = true
-	
-# 	# TODO: Change this to something more explicit
-# 	# Changing the slider value will trigger a rpm engine request
-# 	$WorkModeSlider.value = WorkModes.IDLE_1
-	
-# 	state = ExcavatorState.STARTED
-	
-# func _on_shutdown_pressed():
-# 	print("shutdown")
-# 	request_shutdown()
-# 	state = ExcavatorState.SHUTDOWN
-# 	#change_slider_value_without_signal()
-# 	$"WorkModeSlider/WorkModeLabel".text = "Shutdown"
-# 	$WorkModeSlider.editable = false
-	
-# func change_slider_value_without_signal(slider, value: int):
-# 	slider.disconnect("value_changed", self, "_on_work_mode_slider_value_changed")
-# 	slider.value = value
-# 	slider.connect("value_changed", self, "_on_work_mode_slider_value_changed")
-
-# func _on_work_mode_slider_value_changed(value):
-# 	if get_state() != ExcavatorState.STARTED:
-# 		#$"WorkModeSlider/WorkModeLabel".text = "Excavator not started, cannot set work mode"
-# 		return
-	
-# 	var work_mode = int(value)
-# 	if work_mode in WorkModes.values():
-# 		request_work_mode(work_mode)
 
 func handle_work_mode(work_mode_value: int):
 	if get_state() != ExcavatorState.STARTED:
