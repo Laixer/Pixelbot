@@ -20,6 +20,8 @@ enum ExcavatorState {
 	SHUTDOWN
 }
 
+var demo_mode = false
+
 # enum Motion {
 # 	# Stop all motion until resumed.
 # 	StopAll,
@@ -56,10 +58,9 @@ enum ExcavatorState {
 # }
 
 # TODO: Use glonax to poll state instead 
-var excavatorState = {
+var excavator = {
 	"previous_state": ExcavatorState.UNKNOWN,
 	"current_state": ExcavatorState.UNKNOWN,
-	"WorkMode": WorkModes.IDLE_1
 }
 
 enum WorkModes {
@@ -129,12 +130,13 @@ func _ready():
 
 	#TODO: Connect once, not once per scene
 	_client.connect_to_host(Global.host, Global.port)
+	$StatusPanelLeft/Mode.text = "Mode: Normal"
 
 func _handle_client_connected() -> void:
 	print("Client is connected.")
-	$Hostname.text = "Connected to: " + Global.host + ":" + str(Global.port)
-	$Instance.text = "Instance ID: " + _client._instance.instance_id.hex_encode()
-	$Name.text = "Name: " + _client._instance.name
+	#$Hostname.text = "Connected to: " + Global.host + ":" + str(Global.port)
+	#$Instance.text = "Instance ID: " + _client._instance.instance_id.hex_encode()
+	#$Name.text = "Name: " + _client._instance.name
 
 func _handle_client_disconnected() -> void:
 	print("Client disconnected from server.")
@@ -147,7 +149,10 @@ func _handle_client_message(message_type: Client.MessageType, data: PackedByteAr
 	# print(message_type)
 	if message_type == Client.MessageType.ENGINE:
 		var engine = Client.EngineMessage.from_bytes(data)
-		$"EngineRPM".text = "Engine RPM: " + str(engine.rpm)
+		update_rpm(engine.rpm)
+
+func update_rpm(rpm: int):
+	$"EngineRPM".text = "Engine RPM:\n" + str(rpm)
 	
 func _process(delta):
 	if counter == 3:
@@ -180,34 +185,51 @@ func _input(event):
 			elif event.axis == 1: # Y axis
 				$JoystickInnerLeft.position.y = $JoystickInnerLeft.start_position.y + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 				handle_arm(event.axis_value)
+			elif event.axis == 3: # Slider
+				if demo_mode:
+					var rpm = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 2000)
+					update_rpm(rpm)
 	elif event is InputEventJoypadButton:
 		if event.device == joystick_orientation["right_joystick"]:
 			# print(event)
-			if event.button_index == 9: # Middle right
+			if event.button_index == 8: # Middle Left
+				toggle_demo_mode(event.pressed)
+			elif event.button_index == 9: # Middle right
 				handle_stop(event.pressed)
 			elif event.button_index == 10: # Bottom left
 				handle_start(event.pressed)
 			elif event.button_index == 11: # Bottom right
 				handle_shutdown(event.pressed)
 
+func toggle_demo_mode(pressed: bool):
+	if !pressed:
+		return
+	demo_mode = !demo_mode
+	if demo_mode:
+		_client.message.disconnect(_handle_client_message)
+		$StatusPanelLeft/Mode.text = "Mode: Demo"
+	else:
+		_client.message.connect(_handle_client_message)
+		$StatusPanelLeft/Mode.text = "Mode: Normal"		
+
 func handle_shutdown(pressed: bool):
 	if pressed:
-		if get_state() != ExcavatorState.SHUTDOWN:
-			print("shutdown")
+		# if get_state() != ExcavatorState.SHUTDOWN:
+		print("Shutdown requested")
 			if request_shutdown():
 				set_state(ExcavatorState.SHUTDOWN)
 				$Shutdown.set_pressed(true)
-				$"WorkModeSlider/WorkModeLabel".text = "Shutdown"
-				$WorkModeSlider.value = WorkModes.IDLE_1
-				$WorkModeSlider.editable = false
+			#$"WorkModeSlider/WorkModeLabel".text = "Shutdown"
+			$WorkModeHud/WorkModeSlider.value = WorkModes.IDLE_1
+			#$WorkModeHud/WorkModeSlider.disable = false
 	else:
 		$Shutdown.set_pressed(false)
 
 func handle_start(pressed: bool):
 	if pressed:
-		if get_state() == ExcavatorState.SHUTDOWN or get_state() == ExcavatorState.UNKNOWN:
-			print("start")
-			$WorkModeSlider.editable = true
+		# if get_state() != ExcavatorState.STOPPED:
+		print("Start requested")
+		#$WorkModeHud/WorkModeSlider.disable = true
 			if request_start_motor():
 				set_state(ExcavatorState.STARTED)
 				$StartMotor.set_pressed(true)
@@ -225,14 +247,14 @@ func handle_stop(pressed: bool):
 		$StopMotion.set_pressed(false)
 		
 func set_state(state: ExcavatorState):
-	excavatorState["previous_state"] = excavatorState["current_state"]
-	excavatorState["current_state"] = state
+	excavator["previous_state"] = excavator["current_state"]
+	excavator["current_state"] = state
 
 func get_state():
-	return excavatorState["current_state"]
+	return excavator["current_state"]
 
 func revert_state():
-	excavatorState["current_state"] = excavatorState["previous_state"]
+	excavator["current_state"] = excavator["previous_state"]
 					
 func handle_attachment(axis_value: float) -> bool:
 	print("handle_attachment ", axis_value)
@@ -289,7 +311,6 @@ func handle_arm(axis_value: float) -> bool:
 func request_start_motor() -> bool:
 	if request_work_mode(WorkModes.IDLE_1):
 		change_work_mode_text(WorkModes.IDLE_1)
-		excavatorState["work_mode"] = WorkModes.IDLE_1
 		return true
 	return false
 	
@@ -304,6 +325,7 @@ func request_stop_motion() -> bool:
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 
 func request_resume_motion() -> bool:
+	print("resume motion")	
 	var motion = Client.MotionMessage.resume_all()
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 
@@ -318,14 +340,13 @@ func change_work_mode_text(work_mode: WorkModes):
 
 func handle_work_mode(work_mode_value: int):
 	if get_state() != ExcavatorState.STARTED:
+		print("Work mode request ignored, motor not started")
 		return
 
 	if work_mode_value not in WorkModes.values():
-		return
-	
-	if work_mode_value > (excavatorState["work_mode"] + 1) or work_mode_value < (excavatorState["work_mode"] - 1):
+		print("Error, not a work mode value")
 		return
 	   
 	if request_work_mode(work_mode_value):
 		change_work_mode_text(work_mode_value)
-		excavatorState["work_mode"] = work_mode_value
+		excavator["work_mode"] = work_mode_value
