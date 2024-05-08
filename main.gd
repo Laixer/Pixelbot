@@ -10,7 +10,7 @@ func _ready():
 	add_child(_client)
 
 func _handle_client_connected() -> void:
-	$ConnectionStatus.text = "Connected to " + Global.host + ":" + str(Global.port)
+	#$ConnectionStatus.text = "Connected to " + Global.host + ":" + str(Global.port)
 	get_tree().change_scene_to_file("res://world.tscn")
 
 func _handle_client_error() -> void:

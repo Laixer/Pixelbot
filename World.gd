@@ -117,7 +117,7 @@ const WorkModeRPM = {
 
 func _ready():
 	# Ensure the handle is centered at start (neutral position).
-	$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: None"
+	#$"WorkModeHud".text = "Requested Work Mode: None"
 	#$Shutdown.disabled = true
 	#Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
@@ -153,7 +153,13 @@ func _handle_client_message(message_type: Client.MessageType, data: PackedByteAr
 
 func update_rpm(rpm: int):
 	$"EngineRPM".text = "Engine RPM:\n" + str(rpm)
-	
+	if rpm == 0:
+		$ShutdownIndicator.set_indicator(true)
+		$StartMotorIndicator.set_indicator(false)
+	elif rpm >= IDLE_1:
+		$ShutdownIndicator.set_indicator(false)
+		$StartMotorIndicator.set_indicator(true)
+			
 func _process(delta):
 	if counter == 3:
 		counter = 0
@@ -210,15 +216,15 @@ func toggle_demo_mode(pressed: bool):
 		$StatusPanelLeft/Mode.text = "Mode: Demo"
 	else:
 		_client.message.connect(_handle_client_message)
-		$StatusPanelLeft/Mode.text = "Mode: Normal"		
+		$StatusPanelLeft/Mode.text = "Mode: Normal"
 
 func handle_shutdown(pressed: bool):
 	if pressed:
 		# if get_state() != ExcavatorState.SHUTDOWN:
 		print("Shutdown requested")
-			if request_shutdown():
-				set_state(ExcavatorState.SHUTDOWN)
-				$Shutdown.set_pressed(true)
+		if request_shutdown():
+			set_state(ExcavatorState.SHUTDOWN)
+			$Shutdown.set_pressed(true)
 			#$"WorkModeSlider/WorkModeLabel".text = "Shutdown"
 			$WorkModeHud/WorkModeSlider.value = WorkModes.IDLE_1
 			#$WorkModeHud/WorkModeSlider.disable = false
@@ -230,9 +236,9 @@ func handle_start(pressed: bool):
 		# if get_state() != ExcavatorState.STOPPED:
 		print("Start requested")
 		#$WorkModeHud/WorkModeSlider.disable = true
-			if request_start_motor():
-				set_state(ExcavatorState.STARTED)
-				$StartMotor.set_pressed(true)
+		if request_start_motor():
+			set_state(ExcavatorState.STARTED)
+			$StartMotor.set_pressed(true)
 	else:
 		$StartMotor.set_pressed(false)
 
@@ -241,10 +247,12 @@ func handle_stop(pressed: bool):
 		if request_stop_motion():
 			set_state(ExcavatorState.STOPPED)
 			$StopMotion.set_pressed(true)
+			$StopMotionIndicator.set_indicator(true)
 	else:
-		request_resume_motion()
-		revert_state()
-		$StopMotion.set_pressed(false)
+		if request_resume_motion():
+			revert_state()
+			$StopMotion.set_pressed(false)
+			$StopMotionIndicator.set_indicator(false)
 		
 func set_state(state: ExcavatorState):
 	excavator["previous_state"] = excavator["current_state"]
@@ -325,7 +333,7 @@ func request_stop_motion() -> bool:
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 
 func request_resume_motion() -> bool:
-	print("resume motion")	
+	print("resume motion")
 	var motion = Client.MotionMessage.resume_all()
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 
@@ -335,8 +343,8 @@ func request_work_mode(work_mode: WorkModes) -> bool:
 	return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
 
 func change_work_mode_text(work_mode: WorkModes):
-	$WorkModeSlider.value = work_mode
-	$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeNames[work_mode]
+	$WorkModeHud/WorkModeSlider.value = work_mode
+	#$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeNames[work_mode]
 
 func handle_work_mode(work_mode_value: int):
 	if get_state() != ExcavatorState.STARTED:
