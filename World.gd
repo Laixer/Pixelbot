@@ -13,54 +13,22 @@ var counter = 0
 const Client = preload ("res://glonax-client.gd")
 var _client: Client = Client.new("godot/4.2")
 
-enum ExcavatorState {
-	UNKNOWN,
-	STARTED,
-	STOPPED,
+enum EngineState {
+	RUNNING,
 	SHUTDOWN
+}
+
+enum MotionState {
+	LOCKED,
+	UNLOCKED
 }
 
 var demo_mode = false
 
-# enum Motion {
-# 	# Stop all motion until resumed.
-# 	StopAll,
-# 	# Resume all motion.
-# 	ResumeAll,
-# 	# Reset the motion state machine.
-# 	ResetAll,
-# 	# Drive straight forward or backwards.
-# 	StraightDrive,
-# 	# Change motion on actuators.
-# 	Change,
-# }
-
-# enum EngineStatus {
-# 	# Engine is disabled.
-# 	Disabled = 0xFF,
-# 	# Controller Area Network is down.
-# 	NetworkDown = 0x00,
-# 	# Engine message timeout.
-# 	MessageTimeout = 0x01,
-# 	# Engine is nominal.
-# 	Nominal = 0x02,
-# }
-
-# enum EngineState {
-# 	# Engine is shutdown, readytostart.
-# 	NoRequest,
-# 	# Engine is startingup.
-# 	Starting,
-# 	# Engine is shuttingdown.
-# 	Stopping,
-# 	# Engine is running.
-# 	Request,
-# }
-
 # TODO: Use glonax to poll state instead 
 var excavator = {
-	"previous_state": ExcavatorState.UNKNOWN,
-	"current_state": ExcavatorState.UNKNOWN,
+	"engine_state": EngineState.SHUTDOWN,
+	"motion_state": MotionState.LOCKED,
 }
 
 enum WorkModes {
@@ -154,9 +122,11 @@ func _handle_client_message(message_type: Client.MessageType, data: PackedByteAr
 func update_rpm(rpm: int):
 	$"EngineRPM".text = "Engine RPM:\n" + str(rpm)
 	if rpm == 0:
+		excavator["engine_state"] = EngineState.SHUTDOWN
 		$ShutdownIndicator.set_indicator(true)
 		$StartMotorIndicator.set_indicator(false)
 	elif rpm >= IDLE_1:
+		excavator["engine_state"] = EngineState.RUNNING
 		$ShutdownIndicator.set_indicator(false)
 		$StartMotorIndicator.set_indicator(true)
 			
@@ -219,44 +189,51 @@ func toggle_demo_mode(pressed: bool):
 		$StatusPanelLeft/Mode.text = "Mode: Normal"
 
 func handle_shutdown(pressed: bool):
-	if pressed:
-		# if get_state() != ExcavatorState.SHUTDOWN:
-		print("Shutdown requested")
-		if request_shutdown():
-			set_state(ExcavatorState.SHUTDOWN)
-			$Shutdown.set_pressed(true)
-			#$"WorkModeSlider/WorkModeLabel".text = "Shutdown"
-			$WorkModeHud/WorkModeSlider.value = WorkModes.IDLE_1
-			#$WorkModeHud/WorkModeSlider.disable = false
-	else:
+	if !pressed:
 		$Shutdown.set_pressed(false)
+		return
+
+	if excavator["engine_state"] == EngineState.SHUTDOWN:
+		# TODO: Set border to indicate pressed but not correct 
+		print("Engine is already shutdown")
+		return
+	
+	if !request_shutdown():
+		print("Request shutdown communication error")
+		return
+
+	$Shutdown.set_pressed(true)
 
 func handle_start(pressed: bool):
-	if pressed:
-		# if get_state() != ExcavatorState.STOPPED:
-		print("Start requested")
-		#$WorkModeHud/WorkModeSlider.disable = true
-		if request_start_motor():
-			set_state(ExcavatorState.STARTED)
-			$StartMotor.set_pressed(true)
-	else:
+	if !pressed:
 		$StartMotor.set_pressed(false)
+		return
+	
+	if excavator["engine_state"] == EngineState.RUNNING:
+		print("Engine is already running")
+		return
+
+	if excavator["motion_state"] == MotionState.LOCKED:
+		print("Motion is locked, engine cannot be started")
+		return
+
+	if !request_start_motor():
+		print("Request start motor communication error")
+		return
+
+	$StartMotor.set_pressed(true)
 
 func handle_stop(pressed: bool):
 	if pressed:
 		if request_stop_motion():
-			set_state(ExcavatorState.STOPPED)
 			$StopMotion.set_pressed(true)
 			$StopMotionIndicator.set_indicator(true)
+			excavator["motion_state"] = MotionState.LOCKED
 	else:
 		if request_resume_motion():
-			revert_state()
 			$StopMotion.set_pressed(false)
 			$StopMotionIndicator.set_indicator(false)
-		
-func set_state(state: ExcavatorState):
-	excavator["previous_state"] = excavator["current_state"]
-	excavator["current_state"] = state
+			excavator["motion_state"] = MotionState.UNLOCKED
 
 func get_state():
 	return excavator["current_state"]
@@ -347,10 +324,6 @@ func change_work_mode_text(work_mode: WorkModes):
 	#$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeNames[work_mode]
 
 func handle_work_mode(work_mode_value: int):
-	if get_state() != ExcavatorState.STARTED:
-		print("Work mode request ignored, motor not started")
-		return
-
 	if work_mode_value not in WorkModes.values():
 		print("Error, not a work mode value")
 		return

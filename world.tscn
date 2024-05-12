@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://bkwjduy3nskeg"]
+[gd_scene load_steps=16 format=3 uid="uid://bkwjduy3nskeg"]
 
 [ext_resource type="Script" path="res://World.gd" id="1_ufefb"]
 [ext_resource type="Texture2D" uid="uid://bklny0kr2ebs2" path="res://VirtualJoystickPack/JoystickSplitted.png" id="3_m5igp"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://StartMotorIndicator.gd" id="11_jpssk"]
 [ext_resource type="Script" path="res://StopMotionIndicator.gd" id="12_ay2qu"]
 [ext_resource type="Texture2D" uid="uid://cf1uv1ey015dc" path="res://themes/WorkmodeHud/WorkmodeHud.png" id="13_5c2qr"]
+[ext_resource type="Texture2D" uid="uid://dt8cv05g1q0br" path="res://themes/Other/pngegg.png" id="14_g0avh"]
 
 [sub_resource type="VideoStreamTheora" id="VideoStreamTheora_bd2pb"]
 
@@ -120,31 +121,31 @@ text = "HALT"
 [node name="StatusPanelLeft" type="Node" parent="."]
 
 [node name="Status" type="Label" parent="StatusPanelLeft"]
-offset_left = 64.0
-offset_top = 64.0
-offset_right = 122.0
-offset_bottom = 87.0
+offset_left = 16.0
+offset_top = 104.0
+offset_right = 74.0
+offset_bottom = 127.0
 text = "Status: "
 
 [node name="Latency" type="Label" parent="StatusPanelLeft"]
-offset_left = 64.0
-offset_top = 96.0
-offset_right = 133.0
-offset_bottom = 119.0
+offset_left = 16.0
+offset_top = 136.0
+offset_right = 85.0
+offset_bottom = 159.0
 text = "Latency: "
 
 [node name="Profile" type="Label" parent="StatusPanelLeft"]
-offset_left = 64.0
-offset_top = 128.0
-offset_right = 124.0
-offset_bottom = 151.0
+offset_left = 16.0
+offset_top = 168.0
+offset_right = 76.0
+offset_bottom = 191.0
 text = "Profile: "
 
 [node name="Mode" type="Label" parent="StatusPanelLeft"]
-offset_left = 64.0
-offset_top = 32.0
-offset_right = 104.0
-offset_bottom = 55.0
+offset_left = 16.0
+offset_top = 72.0
+offset_right = 69.0
+offset_bottom = 95.0
 text = "Mode: "
 
 [node name="ShutdownIndicator" type="Sprite2D" parent="."]
@@ -462,6 +463,11 @@ offset_bottom = 11.5
 grow_horizontal = 2
 grow_vertical = 2
 text = "BOOST"
+
+[node name="Pngegg" type="Sprite2D" parent="."]
+position = Vector2(40, 40)
+scale = Vector2(0.078125, 0.078125)
+texture = ExtResource("14_g0avh")
 
 [connection signal="pressed" from="StartMotor" to="." method="_on_start_motor_pressed"]
 [connection signal="pressed" from="Shutdown" to="." method="_on_shutdown_pressed"]
