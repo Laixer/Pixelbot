@@ -299,13 +299,20 @@ class VMSMessage:
 
 #############################
 
+enum EngineState {
+	NO_REQUEST = 0x0,
+	STARTING = 0x1,
+	STOPPING = 0x2,
+	REQUEST = 0x10
+}
+
 class EngineMessage:
 	extends Message
 
 	var driver_demand
 	var actual_engine
 	var rpm
-	var state
+	var state: EngineState
 
 	func to_bytes() -> PackedByteArray:
 		var buffer = PackedByteArray()
