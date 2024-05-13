@@ -305,7 +305,7 @@ class EngineMessage:
 	var driver_demand
 	var actual_engine
 	var rpm
-	var status
+	var state
 
 	func to_bytes() -> PackedByteArray:
 		var buffer = PackedByteArray()
@@ -313,7 +313,7 @@ class EngineMessage:
 		buffer.append(0)
 		buffer.append_array(_encode_be_s16(rpm))
 		buffer.append(0)
-		print(buffer)
+		# print(buffer)
 		return buffer
 
 	static func from_bytes(data: PackedByteArray) -> EngineMessage:
@@ -321,7 +321,7 @@ class EngineMessage:
 		engine.driver_demand = data.decode_u8(0)
 		engine.actual_engine = data.decode_u8(1)
 		engine.rpm = _decode_be_s16(data.slice(2, 4))
-		engine.status = data.decode_u8(4)
+		engine.state = data.decode_u8(4)
 
 		return engine
 
