@@ -145,8 +145,19 @@ func map_float_to_int_range(value: float, min_float: float, max_float: float, mi
 func _input(event):
 	if event is InputEventJoypadMotion:
 		if event.device == joystick_orientation["right_joystick"]:
+			if event.axis == 3: # Slider
+				var work_mode = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 9)
+				handle_work_mode(work_mode)
+			
+			# Ignore drift
+			if abs(event.axis_value) < 0.05:
+				return
+				
+			if !motion_allowed(false):
+				$JoystickOuterRight.toggle_color_duration(0.1)
+				return
+		
 			if event.axis == 0: # X axis
-				$JoystickInnerRight.position.x = $JoystickInnerRight.start_position.x + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 				handle_attachment(event.axis_value)
 			elif event.axis == 1: # Y axis
 				$JoystickInnerRight.position.y = $JoystickInnerRight.start_position.y + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
@@ -155,8 +166,21 @@ func _input(event):
 				var work_mode = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 9)
 				handle_work_mode(work_mode)
 		elif event.device == joystick_orientation["left_joystick"]:
+			#TODO: handle_left_joystick(event.axis, event.axis_value)
+			if event.axis == 3: # Slider
+				if demo_mode:
+					var rpm = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 2000)
+					update_rpm(rpm)
+			
+			# Ignore drift
+			if abs(event.axis_value) < 0.05:
+				return
+				
+			if !motion_allowed(false):
+				$JoystickOuterLeft.toggle_color_duration(0.1)				
+				return
+				 
 			if event.axis == 0: # X axis
-				$JoystickInnerLeft.position.x = $JoystickInnerLeft.start_position.x + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 				handle_slew(event.axis_value)
 			elif event.axis == 1: # Y axis
 				$JoystickInnerLeft.position.y = $JoystickInnerLeft.start_position.y + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
@@ -213,9 +237,9 @@ func handle_start(pressed: bool):
 		print("Engine is already running")
 		return
 
-	if excavator["motion_state"] == MotionState.LOCKED:
-		print("Motion is locked, engine cannot be started")
-		return
+	#if excavator["motion_state"] == MotionState.LOCKED:
+		#print("Motion is locked, engine cannot be started")
+		#return
 
 	if !request_start_motor():
 		print("Request start motor communication error")
