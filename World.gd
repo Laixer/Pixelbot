@@ -363,7 +363,8 @@ func motion_allowed(print_error: bool) -> bool:
 
 func request_start_motor() -> bool:
 	if request_work_mode(WorkModes.IDLE_1):
-		change_work_mode_text(WorkModes.IDLE_1)
+		#change_work_mode_text(WorkModes.IDLE_1)
+		$WorkModeHud/WorkModeSlider.value = WorkModes.IDLE_1
 		return true
 	return false
 	
