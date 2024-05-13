@@ -2,13 +2,15 @@ extends Node2D
 
 const JOYSTICK_MAX_HANDLE_DISTANCE = 25
 
+const ENGINE_START_RPM = 500
+
 #TODO: Need calibration and init
 var joystick_orientation = {
 	"left_joystick": 1,
 	"right_joystick": 0
 }
 
-var counter = 0
+var delta_sum = 0
 
 const Client = preload ("res://glonax-client.gd")
 var _client: Client = Client.new("godot/4.2")
@@ -24,6 +26,7 @@ enum MotionState {
 }
 
 var demo_mode = false
+var engine_state_changed = false
 
 # TODO: Use glonax to poll state instead 
 var excavator = {
@@ -118,24 +121,46 @@ func _handle_client_message(message_type: Client.MessageType, data: PackedByteAr
 	if message_type == Client.MessageType.ENGINE:
 		var engine = Client.EngineMessage.from_bytes(data)
 		update_rpm(engine.rpm)
+	# elif message_type == Client.MessageType.ECHO:
+	# 	print(_client._latency)
+	# 	pass
 
 func update_rpm(rpm: int):
 	$"EngineRPM".text = "Engine RPM:\n" + str(rpm)
 	if rpm == 0:
 		excavator["engine_state"] = EngineState.SHUTDOWN
-		$ShutdownIndicator.set_indicator(true)
-		$StartMotorIndicator.set_indicator(false)
-	elif rpm >= IDLE_1:
+		#$ShutdownIndicator.set_indicator(true)
+		#$StartMotorIndicator.set_indicator(false)
+		engine_state_changed = true
+	elif rpm >= ENGINE_START_RPM:
 		excavator["engine_state"] = EngineState.RUNNING
-		$ShutdownIndicator.set_indicator(false)
-		$StartMotorIndicator.set_indicator(true)
+		#$ShutdownIndicator.set_indicator(false)
+		#$StartMotorIndicator.set_indicator(true)
+		if engine_state_changed:
+			excavator["motion_state"] = MotionState.LOCKED
+			engine_state_changed = false
 			
-func _process(delta):
-	if counter == 3:
-		counter = 0
+func _physics_process(delta):
+	#TODO: Thread
+	if delta_sum >= 0.01:
+		delta_sum = 0
+		# _client.probe()
 		_client.send_request(Client.MessageType.ENGINE)
+		
+			# update_indicators()
+		if excavator["engine_state"] == EngineState.SHUTDOWN:
+			$ShutdownIndicator.set_indicator(true)
+			$StartMotorIndicator.set_indicator(false)
+		elif excavator["engine_state"] == EngineState.RUNNING:
+			$ShutdownIndicator.set_indicator(false)
+			$StartMotorIndicator.set_indicator(true)
+
+		if excavator["motion_state"] == MotionState.LOCKED:
+			$StopMotionIndicator.set_indicator(true)
+		elif excavator["motion_state"] == MotionState.UNLOCKED:
+			$StopMotionIndicator.set_indicator(false)
 	
-	counter += 1
+	delta_sum += delta
 	
 func map_float_to_int_range(value: float, min_float: float, max_float: float, min_int: int, max_int: int) -> int:
 	var normalized = (value - min_float) / (max_float - min_float)
@@ -160,11 +185,13 @@ func _input(event):
 			if event.axis == 0: # X axis
 				handle_attachment(event.axis_value)
 			elif event.axis == 1: # Y axis
-				$JoystickInnerRight.position.y = $JoystickInnerRight.start_position.y + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 				handle_boom(event.axis_value)
-			elif event.axis == 3: # Slider
-				var work_mode = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 9)
-				handle_work_mode(work_mode)
+			# # TODO: These requests are redundant requests most of the time, find a better method
+			# # Send rpm request when joystick is moved and previously the rpm was ignored (because of shutdown)
+			# var slider_value = Input.get_joy_axis(joystick_orientation["right_joystick"], 3)
+			# var work_mode = map_float_to_int_range(slider_value, 1.0, -1.0, 0, 9)
+			# handle_work_mode(work_mode) 
+
 		elif event.device == joystick_orientation["left_joystick"]:
 			#TODO: handle_left_joystick(event.axis, event.axis_value)
 			if event.axis == 3: # Slider
@@ -183,12 +210,13 @@ func _input(event):
 			if event.axis == 0: # X axis
 				handle_slew(event.axis_value)
 			elif event.axis == 1: # Y axis
-				$JoystickInnerLeft.position.y = $JoystickInnerLeft.start_position.y + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 				handle_arm(event.axis_value)
-			elif event.axis == 3: # Slider
-				if demo_mode:
-					var rpm = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 2000)
-					update_rpm(rpm)
+			# # TODO: These requests are redundant requests most of the time, find a better method
+			# # Send rpm request when joystick is moved and previously the rpm was ignored (because of shutdownn)
+			# var slider_value = Input.get_joy_axis(joystick_orientation["right_joystick"], 3)
+			# var work_mode = map_float_to_int_range(slider_value, 1.0, -1.0, 0, 9)
+			# handle_work_mode(work_mode) 
+
 	elif event is InputEventJoypadButton:
 		if event.device == joystick_orientation["right_joystick"]:
 			# print(event)
@@ -259,14 +287,11 @@ func handle_stop(pressed: bool):
 			$StopMotionIndicator.set_indicator(false)
 			excavator["motion_state"] = MotionState.UNLOCKED
 
-func get_state():
-	return excavator["current_state"]
-
-func revert_state():
-	excavator["current_state"] = excavator["previous_state"]
 					
 func handle_attachment(axis_value: float) -> bool:
 	print("handle_attachment ", axis_value)
+	$JoystickInnerRight.position.x = $JoystickInnerRight.start_position.x + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
+
 	var motion = Client.MotionMessage.new()
 	motion.command = Client.CHANGE
 	
@@ -280,6 +305,8 @@ func handle_attachment(axis_value: float) -> bool:
 	
 func handle_boom(axis_value: float) -> bool:
 	print("handle_boom ", axis_value)
+	$JoystickInnerRight.position.y = $JoystickInnerRight.start_position.y + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
+
 	var motion = Client.MotionMessage.new()
 	motion.command = Client.CHANGE
 	
@@ -290,9 +317,11 @@ func handle_boom(axis_value: float) -> bool:
 	motion.value_list = [change_set]
 	
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
-	
+
 func handle_slew(axis_value: float) -> bool:
 	print("handle_slew ", axis_value)
+	$JoystickInnerLeft.position.x = $JoystickInnerLeft.start_position.x + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
+
 	var motion = Client.MotionMessage.new()
 	motion.command = Client.CHANGE
 	
@@ -306,6 +335,8 @@ func handle_slew(axis_value: float) -> bool:
 	
 func handle_arm(axis_value: float) -> bool:
 	print("handle_arm ", axis_value)
+	$JoystickInnerLeft.position.y = $JoystickInnerLeft.start_position.y + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
+
 	var motion = Client.MotionMessage.new()
 	motion.command = Client.CHANGE
 	
@@ -317,6 +348,19 @@ func handle_arm(axis_value: float) -> bool:
 	
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 
+func motion_allowed(print_error: bool) -> bool:
+	if excavator["engine_state"] != EngineState.RUNNING:
+		if print_error:
+			print("Engine not started")
+		return false
+
+	if excavator["motion_state"] == MotionState.LOCKED:
+		if print_error:
+			print("Stop motion enabled")
+		return false
+
+	return true
+
 func request_start_motor() -> bool:
 	if request_work_mode(WorkModes.IDLE_1):
 		change_work_mode_text(WorkModes.IDLE_1)
@@ -327,6 +371,9 @@ func request_shutdown() -> bool:
 	var engine = Client.EngineMessage.new()
 	engine.rpm = 0
 	return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
+	# var control = Client.ControlMessage.new()
+	# control.control_type = Client.ControlType.ENGINE_SHUTDOWN
+	# return _client.send(Client.MessageType.CONTROL, control.to_bytes())
 
 func request_stop_motion() -> bool:
 	print("stop motion")
@@ -339,19 +386,32 @@ func request_resume_motion() -> bool:
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 
 func request_work_mode(work_mode: WorkModes) -> bool:
+	print("sending work mode request")
+
+	# var control = Client.ControlMessage.new()
+	# control.control_type = Client.ControlType.ENGINE_REQUEST
+	# control.value = WorkModeRPM[work_mode]
+	# return _client.send(Client.MessageType.CONTROL, control.to_bytes())
+
 	var engine = Client.EngineMessage.new()
 	engine.rpm = WorkModeRPM[work_mode]
 	return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
 
-func change_work_mode_text(work_mode: WorkModes):
-	$WorkModeHud/WorkModeSlider.value = work_mode
-	#$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeNames[work_mode]
+# func change_work_mode_text(work_mode: WorkModes):
+# 	$WorkModeHud/WorkModeSlider.value = work_mode
+# 	#$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeNames[work_mode]
 
 func handle_work_mode(work_mode_value: int):
 	if work_mode_value not in WorkModes.values():
 		print("Error, not a work mode value")
 		return
-	   
+	
+	$WorkModeHud/WorkModeSlider.value = work_mode_value
+
+	if excavator["engine_state"] != EngineState.RUNNING:
+		print("Engine not started")
+		return 
+
 	if request_work_mode(work_mode_value):
-		change_work_mode_text(work_mode_value)
+		#change_work_mode_text(work_mode_value)
 		excavator["work_mode"] = work_mode_value

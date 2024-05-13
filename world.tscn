@@ -1,10 +1,10 @@
-[gd_scene load_steps=16 format=3 uid="uid://bkwjduy3nskeg"]
+[gd_scene load_steps=15 format=3 uid="uid://bkwjduy3nskeg"]
 
 [ext_resource type="Script" path="res://World.gd" id="1_ufefb"]
 [ext_resource type="Texture2D" uid="uid://bklny0kr2ebs2" path="res://VirtualJoystickPack/JoystickSplitted.png" id="3_m5igp"]
 [ext_resource type="Script" path="res://JoystickInner.gd" id="4_ec0kx"]
+[ext_resource type="Script" path="res://JoystickOuter.gd" id="4_m2mme"]
 [ext_resource type="Texture2D" uid="uid://du255sudo8tl7" path="res://VirtualJoystickPack/LargeHandleFilled.png" id="4_sy0pa"]
-[ext_resource type="Script" path="res://ExcavatorCam.gd" id="6_3683u"]
 [ext_resource type="Theme" uid="uid://dqd1piwlyx04d" path="res://themes/StartMotorButton.tres" id="6_ma3ps"]
 [ext_resource type="Theme" uid="uid://btyam5j35gagi" path="res://themes/StopMotionButton.tres" id="7_g7p6j"]
 [ext_resource type="Theme" uid="uid://fbcv4okbnegc" path="res://themes/ShutdownButton.tres" id="7_w4v82"]
@@ -14,8 +14,6 @@
 [ext_resource type="Script" path="res://StopMotionIndicator.gd" id="12_ay2qu"]
 [ext_resource type="Texture2D" uid="uid://cf1uv1ey015dc" path="res://themes/WorkmodeHud/WorkmodeHud.png" id="13_5c2qr"]
 [ext_resource type="Texture2D" uid="uid://dt8cv05g1q0br" path="res://themes/Other/pngegg.png" id="14_g0avh"]
-
-[sub_resource type="VideoStreamTheora" id="VideoStreamTheora_bd2pb"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_ufefb")
@@ -36,11 +34,17 @@ patch_margin_bottom = 10
 position = Vector2(1143.2, 999.2)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("3_m5igp")
+script = ExtResource("4_m2mme")
+
+[node name="Timer" type="Timer" parent="JoystickOuterRight"]
 
 [node name="JoystickOuterLeft" type="Sprite2D" parent="."]
 position = Vector2(695.2, 999.2)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("3_m5igp")
+script = ExtResource("4_m2mme")
+
+[node name="Timer" type="Timer" parent="JoystickOuterLeft"]
 
 [node name="JoystickInnerRight" type="Sprite2D" parent="."]
 position = Vector2(1143.2, 999.2)
@@ -75,15 +79,6 @@ offset_bottom = 640.0
 theme_override_font_sizes/font_size = 19
 text = "ENGINE RPM:"
 horizontal_alignment = 1
-
-[node name="ExcavatorCam" type="VideoStreamPlayer" parent="."]
-offset_left = 312.0
-offset_top = 64.0
-offset_right = 1592.0
-offset_bottom = 784.0
-stream = SubResource("VideoStreamTheora_bd2pb")
-expand = true
-script = ExtResource("6_3683u")
 
 [node name="StartMotor" type="Button" parent="."]
 offset_left = 800.0
