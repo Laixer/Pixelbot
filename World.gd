@@ -28,6 +28,7 @@ enum MotionState {
 
 var demo_mode = false
 var engine_state_changed = false
+var engine_started_rpm_update = false
 
 # TODO: Use glonax to poll state instead 
 var excavator = {
@@ -140,6 +141,9 @@ func update_rpm(rpm: int):
 		if engine_state_changed:
 			excavator["motion_state"] = MotionState.LOCKED
 			engine_state_changed = false
+			# TODO: This should be replaced by something more scalable
+			# Save flag which can be set on false when rpm is updated by any motion 
+			engine_started_rpm_update = true
 			
 func _physics_process(delta):
 	#TODO: Thread
@@ -155,19 +159,19 @@ func _physics_process(delta):
 		delta_sum_ping = 0
 		# _client.probe()
 
-		
-			# update_indicators()
-		if excavator["engine_state"] == EngineState.SHUTDOWN:
-			$ShutdownIndicator.set_indicator(true)
-			$StartMotorIndicator.set_indicator(false)
-		elif excavator["engine_state"] == EngineState.RUNNING:
-			$ShutdownIndicator.set_indicator(false)
-			$StartMotorIndicator.set_indicator(true)
 
-		if excavator["motion_state"] == MotionState.LOCKED:
-			$StopMotionIndicator.set_indicator(true)
-		elif excavator["motion_state"] == MotionState.UNLOCKED:
-			$StopMotionIndicator.set_indicator(false)
+	# update_indicators()
+	if excavator["engine_state"] == EngineState.SHUTDOWN:
+		$ShutdownIndicator.set_indicator(true)
+		$StartMotorIndicator.set_indicator(false)
+	elif excavator["engine_state"] == EngineState.RUNNING:
+		$ShutdownIndicator.set_indicator(false)
+		$StartMotorIndicator.set_indicator(true)
+
+	if excavator["motion_state"] == MotionState.LOCKED:
+		$StopMotionIndicator.set_indicator(true)
+	elif excavator["motion_state"] == MotionState.UNLOCKED:
+		$StopMotionIndicator.set_indicator(false)
 	
 	
 func map_float_to_int_range(value: float, min_float: float, max_float: float, min_int: int, max_int: int) -> int:
@@ -181,6 +185,7 @@ func _input(event):
 			if event.axis == 3: # Slider
 				var work_mode = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 9)
 				handle_work_mode(work_mode)
+				return
 			
 			# Ignore drift
 			if abs(event.axis_value) < 0.05:
@@ -196,9 +201,11 @@ func _input(event):
 				handle_boom(event.axis_value)
 			# # TODO: These requests are redundant requests most of the time, find a better method
 			# # Send rpm request when joystick is moved and previously the rpm was ignored (because of shutdown)
-			# var slider_value = Input.get_joy_axis(joystick_orientation["right_joystick"], 3)
-			# var work_mode = map_float_to_int_range(slider_value, 1.0, -1.0, 0, 9)
-			# handle_work_mode(work_mode) 
+			if (event.axis == 0 || event.axis == 1) && engine_started_rpm_update:
+				var slider_value = Input.get_joy_axis(joystick_orientation["right_joystick"], 3)
+				var work_mode = map_float_to_int_range(slider_value, 1.0, -1.0, 0, 9)
+				handle_work_mode(work_mode) 
+				engine_started_rpm_update = false
 
 		elif event.device == joystick_orientation["left_joystick"]:
 			#TODO: handle_left_joystick(event.axis, event.axis_value)
@@ -206,6 +213,7 @@ func _input(event):
 				if demo_mode:
 					var rpm = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 2000)
 					update_rpm(rpm)
+				return
 			
 			# Ignore drift
 			if abs(event.axis_value) < 0.05:
@@ -221,10 +229,12 @@ func _input(event):
 				handle_arm(event.axis_value)
 			# # TODO: These requests are redundant requests most of the time, find a better method
 			# # Send rpm request when joystick is moved and previously the rpm was ignored (because of shutdownn)
-			# var slider_value = Input.get_joy_axis(joystick_orientation["right_joystick"], 3)
-			# var work_mode = map_float_to_int_range(slider_value, 1.0, -1.0, 0, 9)
-			# handle_work_mode(work_mode) 
-
+			if (event.axis == 0 || event.axis == 1) && engine_started_rpm_update:
+				var slider_value = Input.get_joy_axis(joystick_orientation["right_joystick"], 3)
+				var work_mode = map_float_to_int_range(slider_value, 1.0, -1.0, 0, 9)
+				handle_work_mode(work_mode) 
+				engine_started_rpm_update = false
+				
 	elif event is InputEventJoypadButton:
 		if event.device == joystick_orientation["right_joystick"]:
 			# print(event)
@@ -422,5 +432,5 @@ func handle_work_mode(work_mode_value: int):
 		return 
 
 	if request_work_mode(work_mode_value):
-		#change_work_mode_text(work_mode_value)
 		excavator["work_mode"] = work_mode_value
+		engine_started_rpm_update = false
