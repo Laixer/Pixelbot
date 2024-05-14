@@ -10,7 +10,8 @@ var joystick_orientation = {
 	"right_joystick": 0
 }
 
-var delta_sum = 0
+var delta_sum_ping = 0
+var delta_sum_engine = 0
 
 const Client = preload ("res://glonax-client.gd")
 var _client: Client = Client.new("godot/4.2")
@@ -142,10 +143,18 @@ func update_rpm(rpm: int):
 			
 func _physics_process(delta):
 	#TODO: Thread
-	if delta_sum >= 0.01:
-		delta_sum = 0
-		# _client.probe()
+
+	delta_sum_engine += delta
+	delta_sum_ping += delta
+
+	if delta_sum_engine >= 0.01:
+		delta_sum_engine = 0
 		_client.send_request(Client.MessageType.ENGINE)
+		
+	if delta_sum_ping >= 1:
+		delta_sum_ping = 0
+		# _client.probe()
+
 		
 			# update_indicators()
 		if excavator["engine_state"] == EngineState.SHUTDOWN:
@@ -160,7 +169,6 @@ func _physics_process(delta):
 		elif excavator["motion_state"] == MotionState.UNLOCKED:
 			$StopMotionIndicator.set_indicator(false)
 	
-	delta_sum += delta
 	
 func map_float_to_int_range(value: float, min_float: float, max_float: float, min_int: int, max_int: int) -> int:
 	var normalized = (value - min_float) / (max_float - min_float)
