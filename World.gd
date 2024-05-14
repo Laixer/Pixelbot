@@ -4,6 +4,10 @@ const JOYSTICK_MAX_HANDLE_DISTANCE = 25
 
 const ENGINE_START_RPM = 500
 
+const MOTION_MAX = 32000
+
+const MOTION_MIN = -32000
+
 #TODO: Need calibration and init
 var joystick_orientation = {
 	"left_joystick": 1,
@@ -315,7 +319,7 @@ func handle_attachment(axis_value: float) -> bool:
 	
 	var change_set = Client.MotionChangeSetMessage.new()
 	change_set.actuator = 5
-	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, 0, 32_000)
+	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, MOTION_MAX, MOTION_MIN)
 	
 	motion.value_list = [change_set]
 	
@@ -330,7 +334,7 @@ func handle_boom(axis_value: float) -> bool:
 	
 	var change_set = Client.MotionChangeSetMessage.new()
 	change_set.actuator = 0
-	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, 0, 32_000)
+	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, MOTION_MAX, MOTION_MIN)
 	
 	motion.value_list = [change_set]
 	
@@ -345,7 +349,7 @@ func handle_slew(axis_value: float) -> bool:
 	
 	var change_set = Client.MotionChangeSetMessage.new()
 	change_set.actuator = 1
-	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, 0, 32_000)
+	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, MOTION_MAX, MOTION_MIN)
 	
 	motion.value_list = [change_set]
 	
@@ -360,7 +364,7 @@ func handle_arm(axis_value: float) -> bool:
 	
 	var change_set = Client.MotionChangeSetMessage.new()
 	change_set.actuator = 4
-	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, 0, 32_000)
+	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, MOTION_MAX, MOTION_MIN)
 	
 	motion.value_list = [change_set]
 	
@@ -387,12 +391,12 @@ func request_start_motor() -> bool:
 	return false
 	
 func request_shutdown() -> bool:
-	var engine = Client.EngineMessage.new()
-	engine.rpm = 0
-	return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
-	# var control = Client.ControlMessage.new()
-	# control.control_type = Client.ControlType.ENGINE_SHUTDOWN
-	# return _client.send(Client.MessageType.CONTROL, control.to_bytes())
+	# var engine = Client.EngineMessage.new()
+	# engine.rpm = 0
+	# return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
+	var control = Client.ControlMessage.new()
+	control.control_type = Client.ControlType.ENGINE_SHUTDOWN
+	return _client.send(Client.MessageType.CONTROL, control.to_bytes())
 
 func request_stop_motion() -> bool:
 	print("stop motion")
@@ -407,14 +411,14 @@ func request_resume_motion() -> bool:
 func request_work_mode(work_mode: WorkMode) -> bool:
 	print("sending work mode request")
 
-	# var control = Client.ControlMessage.new()
-	# control.control_type = Client.ControlType.ENGINE_REQUEST
-	# control.value = WorkModeRPM[work_mode]
-	# return _client.send(Client.MessageType.CONTROL, control.to_bytes())
+	var control = Client.ControlMessage.new()
+	control.control_type = Client.ControlType.ENGINE_REQUEST
+	control.value = WorkModeRPM[work_mode]
+	return _client.send(Client.MessageType.CONTROL, control.to_bytes())
 
-	var engine = Client.EngineMessage.new()
-	engine.rpm = WorkModeRPM[work_mode]
-	return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
+	# var engine = Client.EngineMessage.new()
+	# engine.rpm = WorkModeRPM[work_mode]
+	# return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
 
 # func change_work_mode_text(work_mode: WorkMode):
 # 	$WorkModeHud/WorkModeSlider.value = work_mode
