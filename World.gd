@@ -34,7 +34,7 @@ var excavator = {
 	"motion_state": MotionState.LOCKED,
 }
 
-enum WorkModes {
+enum WorkMode {
 	IDLE_1,
 	IDLE_2,
 	FINE_1,
@@ -47,17 +47,17 @@ enum WorkModes {
 	POWER_MAX
 }
 
-const WorkModeNames = {
-	WorkModes.IDLE_1: "Idle 1",
-	WorkModes.IDLE_2: "Idle 2",
-	WorkModes.FINE_1: "Fine 1",
-	WorkModes.FINE_2: "Fine 2",
-	WorkModes.FINE_3: "Fine 3",
-	WorkModes.GENERAL_1: "General 1",
-	WorkModes.GENERAL_2: "General 2",
-	WorkModes.GENERAL_3: "General 3",
-	WorkModes.HIGH: "High",
-	WorkModes.POWER_MAX: "Power Boost"
+const WorkModeName = {
+	WorkMode.IDLE_1: "Idle 1",
+	WorkMode.IDLE_2: "Idle 2",
+	WorkMode.FINE_1: "Fine 1",
+	WorkMode.FINE_2: "Fine 2",
+	WorkMode.FINE_3: "Fine 3",
+	WorkMode.GENERAL_1: "General 1",
+	WorkMode.GENERAL_2: "General 2",
+	WorkMode.GENERAL_3: "General 3",
+	WorkMode.HIGH: "High",
+	WorkMode.POWER_MAX: "Power Boost"
 }
 
 enum {
@@ -74,16 +74,16 @@ enum {
 }
 
 const WorkModeRPM = {
-	WorkModes.IDLE_1: IDLE_1,
-	WorkModes.IDLE_2: IDLE_2,
-	WorkModes.FINE_1: FINE_1,
-	WorkModes.FINE_2: FINE_2,
-	WorkModes.FINE_3: FINE_3,
-	WorkModes.GENERAL_1: GENERAL_1,
-	WorkModes.GENERAL_2: GENERAL_2,
-	WorkModes.GENERAL_3: GENERAL_3,
-	WorkModes.HIGH: HIGH,
-	WorkModes.POWER_MAX: POWER_MAX
+	WorkMode.IDLE_1: IDLE_1,
+	WorkMode.IDLE_2: IDLE_2,
+	WorkMode.FINE_1: FINE_1,
+	WorkMode.FINE_2: FINE_2,
+	WorkMode.FINE_3: FINE_3,
+	WorkMode.GENERAL_1: GENERAL_1,
+	WorkMode.GENERAL_2: GENERAL_2,
+	WorkMode.GENERAL_3: GENERAL_3,
+	WorkMode.HIGH: HIGH,
+	WorkMode.POWER_MAX: POWER_MAX
 }
 
 func _ready():
@@ -289,7 +289,7 @@ func handle_stop(pressed: bool):
 
 					
 func handle_attachment(axis_value: float) -> bool:
-	print("handle_attachment ", axis_value)
+	#print("handle_attachment ", axis_value)
 	$JoystickInnerRight.position.x = $JoystickInnerRight.start_position.x + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 
 	var motion = Client.MotionMessage.new()
@@ -304,7 +304,7 @@ func handle_attachment(axis_value: float) -> bool:
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 	
 func handle_boom(axis_value: float) -> bool:
-	print("handle_boom ", axis_value)
+	#print("handle_boom ", axis_value)
 	$JoystickInnerRight.position.y = $JoystickInnerRight.start_position.y + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 
 	var motion = Client.MotionMessage.new()
@@ -319,7 +319,7 @@ func handle_boom(axis_value: float) -> bool:
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 
 func handle_slew(axis_value: float) -> bool:
-	print("handle_slew ", axis_value)
+	#print("handle_slew ", axis_value)
 	$JoystickInnerLeft.position.x = $JoystickInnerLeft.start_position.x + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 
 	var motion = Client.MotionMessage.new()
@@ -334,7 +334,7 @@ func handle_slew(axis_value: float) -> bool:
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 	
 func handle_arm(axis_value: float) -> bool:
-	print("handle_arm ", axis_value)
+	#print("handle_arm ", axis_value)
 	$JoystickInnerLeft.position.y = $JoystickInnerLeft.start_position.y + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 
 	var motion = Client.MotionMessage.new()
@@ -362,9 +362,9 @@ func motion_allowed(print_error: bool) -> bool:
 	return true
 
 func request_start_motor() -> bool:
-	if request_work_mode(WorkModes.IDLE_1):
-		#change_work_mode_text(WorkModes.IDLE_1)
-		$WorkModeHud/WorkModeSlider.value = WorkModes.IDLE_1
+	if request_work_mode(WorkMode.IDLE_1):
+		#change_work_mode_text(WorkMode.IDLE_1)
+		$WorkModeHud/WorkModeSlider.value = WorkMode.IDLE_1
 		return true
 	return false
 	
@@ -386,7 +386,7 @@ func request_resume_motion() -> bool:
 	var motion = Client.MotionMessage.resume_all()
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 
-func request_work_mode(work_mode: WorkModes) -> bool:
+func request_work_mode(work_mode: WorkMode) -> bool:
 	print("sending work mode request")
 
 	# var control = Client.ControlMessage.new()
@@ -398,12 +398,12 @@ func request_work_mode(work_mode: WorkModes) -> bool:
 	engine.rpm = WorkModeRPM[work_mode]
 	return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
 
-# func change_work_mode_text(work_mode: WorkModes):
+# func change_work_mode_text(work_mode: WorkMode):
 # 	$WorkModeHud/WorkModeSlider.value = work_mode
-# 	#$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeNames[work_mode]
+# 	#$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeName[work_mode]
 
 func handle_work_mode(work_mode_value: int):
-	if work_mode_value not in WorkModes.values():
+	if work_mode_value not in WorkMode.values():
 		print("Error, not a work mode value")
 		return
 	
