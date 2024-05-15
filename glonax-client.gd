@@ -17,6 +17,8 @@ var _echo: EchoMessage
 var _instance: InstanceMessage
 var _latency: float = 0
 var _ping_start_time_msec: int = 0
+var _receive_thread: Thread
+var _should_run_receive_t: bool = false
 
 const PING_TIMEOUT: float = 1000
 
@@ -404,6 +406,56 @@ func _init(user_agent: String = "godot"):
 	_stream.set_big_endian(true)
 	_stream.set_no_delay(true)
 	_user_agent = user_agent
+	_should_run_receive_t = true 
+	_receive_thread = Thread.new()
+	_receive_thread.start(_receive_thread_func)
+
+# TODO: replace this thread by c++ GDextension
+func _receive_thread_func():
+	while _should_run_receive_t:
+		if _stream.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+			OS.delay_msec(100)  
+			continue 
+
+		print("Connected")
+		var data_array = _stream.get_data(10)
+		if data_array[0] != OK:
+			print("Error getting data from stream, first 10 bytes not OK")
+			emit_signal("error")
+			continue
+		print("Data ok")
+		var recv_data = data_array[1]
+		process_received_data(recv_data)
+		print("Processed recv data")
+	print("Done")
+
+func process_received_data(recv_data):
+	var header = recv_data.slice(0, 3)
+	if header != PackedByteArray([0x4C, 0x58, 0x52]):
+		print("Error, unexpected header: ", header)
+		emit_signal("error")
+	var version = recv_data[3]
+	if version != 0x3:
+		print("Error getting data from stream: invalid version")
+		emit_signal("error")
+	var message_type = recv_data[4]
+	var payload_length = Message._decode_be_s16(recv_data.slice(5, 7))
+	print("payload length: ", payload_length)
+	assert(recv_data.slice(7, 10) == PackedByteArray([0x0, 0x0, 0x0]))
+	var payload = _stream.get_partial_data(payload_length)
+	if payload[0] != OK:
+		print("Error getting data from stream: ", payload[0])
+		emit_signal("error")
+	else:
+		_recv(message_type, payload[1])
+
+func _finalize():
+	_should_run_receive_t = false
+	_stream.disconnect_from_host()
+	_receive_thread.wait_to_finish()
+
+func _exit_tree():
+	_finalize()
 
 func _physics_process(delta: float) -> void:
 	if _stream.get_status() != _stream.STATUS_NONE:
@@ -423,34 +475,9 @@ func _physics_process(delta: float) -> void:
 				print("Error with socket stream.")
 				emit_signal("error")
 
-	if _status == _stream.STATUS_CONNECTED:
-		var available_bytes: int = _stream.get_available_bytes()
-		if available_bytes > 10:
-			var header = _stream.get_data(3)
-			if header[0] != OK or header[1] != PackedByteArray([0x4C, 0x58, 0x52]):
-				print("Error getting data from stream: ", header[0])
-				emit_signal("error")
-			var version = _stream.get_u8()
-			if version != 0x3:
-				print("Error getting data from stream: invalid version")
-				emit_signal("error")
-			var message_type = _stream.get_u8()
-			var payload_length = _stream.get_u16()
-			assert(_stream.get_data(3)[1] == PackedByteArray([0x0, 0x0, 0x0]))
-			var payload: Array = _stream.get_partial_data(payload_length)
-			if payload[0] != OK:
-				print("Error getting data from stream: ", payload[0])
-				emit_signal("error")
-			else:
-				_recv(message_type, payload[1])
-
-func _exit_tree():
-	# TODO: Send connection shutdown
-	pass
 
 func _recv(message_type: MessageType, payload: PackedByteArray):
 	if message_type == MessageType.ECHO:
-
 		# Ping
 		if _ping_start_time_msec != 0:
 		var echo = EchoMessage.from_bytes(payload)
@@ -473,10 +500,11 @@ func _recv(message_type: MessageType, payload: PackedByteArray):
 		print(_instance.get_string_representation())
 		_is_session_setup = true
 
-		emit_signal("connected")
+		# print("signal: ", emit_signal("connected"))
+		call_deferred("emit_signal", "connected")
 
 	elif _is_session_setup:
-		emit_signal("message", message_type, payload)
+		call_deferred("emit_signal", "message", message_type, payload)
 
 func _handshake():
 	if not _is_handshake_setup:
