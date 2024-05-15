@@ -413,9 +413,31 @@ func _init(user_agent: String = "godot"):
 # TODO: replace this thread by c++ GDextension
 func _receive_thread_func():
 	while _should_run_receive_t:
-		if _stream.get_status() != StreamPeerTCP.STATUS_CONNECTED:
-			OS.delay_msec(100)  
-			continue 
+		_stream.poll()
+
+		var new_status: int = _stream.get_status()
+		if new_status != _status:
+			_status = new_status
+			match _status:
+				_stream.STATUS_NONE:
+					print("Error, status none, disconnect.")
+					call_deferred("emit_signal", "disconnected")
+					break
+				_stream.STATUS_CONNECTING:
+					# pass
+					OS.delay_msec(10)
+					continue
+				_stream.STATUS_CONNECTED:
+					_handshake()
+				_stream.STATUS_ERROR:
+					print("Error with socket stream.")
+					call_deferred("emit_signal", "error")
+					break
+
+		# When we are in the initial state do not recv data, instead wait
+		if _stream.get_status() == StreamPeerTCP.STATUS_NONE:
+			OS.delay_msec(10)
+			continue
 
 		var data_array = _stream.get_data(10)
 		if data_array[0] != OK:
@@ -452,22 +474,23 @@ func _exit_tree():
 	_finalize()
 
 func _physics_process(delta: float) -> void:
-	if _stream.get_status() != _stream.STATUS_NONE:
-		_stream.poll()
+	pass
+	# if _stream.get_status() != _stream.STATUS_NONE:
+	# 	_stream.poll()
 
-	var new_status: int = _stream.get_status()
-	if new_status != _status:
-		_status = new_status
-		match _status:
-			_stream.STATUS_NONE:
-				emit_signal("disconnected")
-			_stream.STATUS_CONNECTING:
-				pass
-			_stream.STATUS_CONNECTED:
-				_handshake()
-			_stream.STATUS_ERROR:
-				print("Error with socket stream.")
-				emit_signal("error")
+	# var new_status: int = _stream.get_status()
+	# if new_status != _status:
+	# 	_status = new_status
+	# 	match _status:
+	# 		_stream.STATUS_NONE:
+	# 			emit_signal("disconnected")
+	# 		_stream.STATUS_CONNECTING:
+	# 			pass
+	# 		_stream.STATUS_CONNECTED:
+	# 			_handshake()
+	# 		_stream.STATUS_ERROR:
+	# 			print("Error with socket stream.")
+	# 			emit_signal("error")
 
 
 func _recv(message_type: MessageType, payload: PackedByteArray):
