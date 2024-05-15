@@ -410,6 +410,8 @@ func _init(user_agent: String = "godot"):
 	_receive_thread = Thread.new()
 	_receive_thread.start(_receive_thread_func)
 
+var recv_counter = 0
+var send_counter = 0
 # TODO: replace this thread by c++ GDextension
 func _receive_thread_func():
 	while _should_run_receive_t:
@@ -425,6 +427,7 @@ func _receive_thread_func():
 					break
 				_stream.STATUS_CONNECTING:
 					# pass
+					print("Connecting...")
 					OS.delay_msec(10)
 					continue
 				_stream.STATUS_CONNECTED:
@@ -447,6 +450,7 @@ func _receive_thread_func():
 		process_received_data(recv_data)
 
 func process_received_data(recv_data):
+	recv_counter += 1
 	var header = recv_data.slice(0, 3)
 	if header != PackedByteArray([0x4C, 0x58, 0x52]):
 		print("Error, unexpected header: ", header)
@@ -473,8 +477,14 @@ func _finalize():
 func _exit_tree():
 	_finalize()
 
+var delta_sum = 0
 func _physics_process(delta: float) -> void:
-	pass
+	delta_sum += delta
+	if delta_sum > 1:
+		print ("recv counter: ", recv_counter)
+		print ("send counter: ", send_counter)
+		delta_sum = 0
+
 	# if _stream.get_status() != _stream.STATUS_NONE:
 	# 	_stream.poll()
 
@@ -560,6 +570,7 @@ func send(message_type: MessageType, payload: PackedByteArray) -> bool:
 	if error != OK:
 		print("Error writing to stream: ", error)
 		return false
+	send_counter += 1
 	return true
 
 func probe() -> bool:
