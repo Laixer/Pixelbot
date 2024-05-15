@@ -474,7 +474,7 @@ func _recv(message_type: MessageType, payload: PackedByteArray):
 	if message_type == MessageType.ECHO:
 		# Ping
 		if _ping_start_time_msec != 0:
-		var echo = EchoMessage.from_bytes(payload)
+			var echo = EchoMessage.from_bytes(payload)
 			if echo.value != _echo.value:
 				print("Error, echo send and receive msgs are not the same")
 				_ping_start_time_msec = 0
@@ -485,7 +485,7 @@ func _recv(message_type: MessageType, payload: PackedByteArray):
 		if not _is_handshake_setup:
 			_is_handshake_setup = true
 		var session = SessionMessage.new()
-			session.flags = 6
+		session.flags = 6
 		session.name = _user_agent
 		send(MessageType.SESSION, session.to_bytes())
 
