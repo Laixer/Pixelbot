@@ -323,7 +323,7 @@ class EngineMessage:
 		buffer.append(0)
 		buffer.append(0)
 		buffer.append_array(_encode_be_s16(rpm))
-		buffer.append(0)
+		buffer.append(state)
 		# print(buffer)
 		return buffer
 
