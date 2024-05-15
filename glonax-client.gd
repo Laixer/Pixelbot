@@ -417,35 +417,29 @@ func _receive_thread_func():
 			OS.delay_msec(100)  
 			continue 
 
-		print("Connected")
 		var data_array = _stream.get_data(10)
 		if data_array[0] != OK:
-			print("Error getting data from stream, first 10 bytes not OK")
-			emit_signal("error")
+			call_deferred("emit_signal", "error")
 			continue
-		print("Data ok")
 		var recv_data = data_array[1]
 		process_received_data(recv_data)
-		print("Processed recv data")
-	print("Done")
 
 func process_received_data(recv_data):
 	var header = recv_data.slice(0, 3)
 	if header != PackedByteArray([0x4C, 0x58, 0x52]):
 		print("Error, unexpected header: ", header)
-		emit_signal("error")
+		call_deferred("emit_signal", "error")
 	var version = recv_data[3]
 	if version != 0x3:
 		print("Error getting data from stream: invalid version")
-		emit_signal("error")
+		call_deferred("emit_signal", "error")
 	var message_type = recv_data[4]
 	var payload_length = Message._decode_be_s16(recv_data.slice(5, 7))
-	print("payload length: ", payload_length)
 	assert(recv_data.slice(7, 10) == PackedByteArray([0x0, 0x0, 0x0]))
 	var payload = _stream.get_partial_data(payload_length)
 	if payload[0] != OK:
 		print("Error getting data from stream: ", payload[0])
-		emit_signal("error")
+		call_deferred("emit_signal", "error")
 	else:
 		_recv(message_type, payload[1])
 
@@ -499,8 +493,6 @@ func _recv(message_type: MessageType, payload: PackedByteArray):
 		_instance = InstanceMessage.from_bytes(payload)
 		print(_instance.get_string_representation())
 		_is_session_setup = true
-
-		# print("signal: ", emit_signal("connected"))
 		call_deferred("emit_signal", "connected")
 
 	elif _is_session_setup:
@@ -509,10 +501,6 @@ func _recv(message_type: MessageType, payload: PackedByteArray):
 func _handshake():
 	if not _is_handshake_setup:
 		probe()
-
-	if not _is_echo_setup:
-		_echo = EchoMessage.new()
-		send(MessageType.ECHO, _echo.to_bytes())
 
 func is_setup_complete() -> bool:
 	return _is_session_setup
