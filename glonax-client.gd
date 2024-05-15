@@ -464,7 +464,7 @@ func _recv(message_type: MessageType, payload: PackedByteArray):
 		if not _is_handshake_setup:
 			_is_handshake_setup = true
 		var session = SessionMessage.new()
-		session.flags = 3
+			session.flags = 6
 		session.name = _user_agent
 		send(MessageType.SESSION, session.to_bytes())
 
