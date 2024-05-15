@@ -8,6 +8,12 @@ const MOTION_MAX = 32000
 
 const MOTION_MIN = -32000
 
+const LIMIT_GOOD_LATENCY = 50
+
+const LIMIT_AVERAGE_LATENCY = 100
+
+const LIMIT_BAD_LATENCY = 150
+
 #TODO: Need calibration and init
 var joystick_orientation = {
 	"left_joystick": 1,
@@ -33,6 +39,7 @@ enum MotionState {
 var demo_mode = false
 var engine_state_changed = false
 var engine_started_rpm_update = false
+var latency_bad = false
 
 # TODO: Use glonax to poll state instead 
 var excavator = {
@@ -116,7 +123,8 @@ func _handle_client_connected() -> void:
 	#$Name.text = "Name: " + _client._instance.name
 
 func _handle_client_disconnected() -> void:
-	print("Client disconnected from server.")
+	print("Client disconnected from server. Try reconnecting.")
+	_client.reconnect(Global.host, Global.port)
 
 func _handle_client_error() -> void:
 	print("Client error.")
@@ -149,6 +157,29 @@ func update_rpm(rpm: int):
 			# Save flag which can be set on false when rpm is updated by any motion 
 			engine_started_rpm_update = true
 			
+func handle_latency() -> bool:
+	var latency_icon = "❌"
+	var warning = ""
+	latency_bad = false
+	if _client._latency <= LIMIT_GOOD_LATENCY:
+		latency_icon = "🟢"
+	elif _client._latency <= LIMIT_AVERAGE_LATENCY:
+		latency_icon = "🟠"
+	elif _client._latency <= LIMIT_BAD_LATENCY:
+		latency_icon = "🔴"
+	else: 
+		if request_stop_motion():
+			$StopMotion.set_pressed(true)
+			$StopMotionIndicator.set_indicator(true)
+			excavator["motion_state"] = MotionState.LOCKED
+			warning = " Connection quality BAD, motion locked"
+			latency_bad = true
+		else: 
+			warning = " Connection quality BAD, motion lock FAILED"
+
+	$StatusPanelLeft/Latency.text = "Latency: " + latency_icon + " " + str(_client._latency) + " ms" + warning
+	return _client.probe()
+
 func _physics_process(delta):
 	#TODO: Thread
 
@@ -161,8 +192,7 @@ func _physics_process(delta):
 		
 	if delta_sum_ping >= 1:
 		delta_sum_ping = 0
-		# _client.probe()
-
+		handle_latency()
 
 	# update_indicators()
 	if excavator["engine_state"] == EngineState.SHUTDOWN:
@@ -176,7 +206,6 @@ func _physics_process(delta):
 		$StopMotionIndicator.set_indicator(true)
 	elif excavator["motion_state"] == MotionState.UNLOCKED:
 		$StopMotionIndicator.set_indicator(false)
-	
 	
 func map_float_to_int_range(value: float, min_float: float, max_float: float, min_int: int, max_int: int) -> int:
 	var normalized = (value - min_float) / (max_float - min_float)
@@ -205,7 +234,7 @@ func _input(event):
 				handle_boom(event.axis_value)
 			# # TODO: These requests are redundant requests most of the time, find a better method
 			# # Send rpm request when joystick is moved and previously the rpm was ignored (because of shutdown)
-			if (event.axis == 0 || event.axis == 1) && engine_started_rpm_update:
+			if (event.axis == 0||event.axis == 1)&&engine_started_rpm_update:
 				var slider_value = Input.get_joy_axis(joystick_orientation["right_joystick"], 3)
 				var work_mode = map_float_to_int_range(slider_value, 1.0, -1.0, 0, 9)
 				handle_work_mode(work_mode) 
@@ -298,6 +327,10 @@ func handle_start(pressed: bool):
 	$StartMotor.set_pressed(true)
 
 func handle_stop(pressed: bool):
+	if latency_bad:
+		print("Connection quality BAD, motion locked")
+		return
+
 	if pressed:
 		if request_stop_motion():
 			$StopMotion.set_pressed(true)
@@ -308,7 +341,6 @@ func handle_stop(pressed: bool):
 			$StopMotion.set_pressed(false)
 			$StopMotionIndicator.set_indicator(false)
 			excavator["motion_state"] = MotionState.UNLOCKED
-
 					
 func handle_attachment(axis_value: float) -> bool:
 	#print("handle_attachment ", axis_value)

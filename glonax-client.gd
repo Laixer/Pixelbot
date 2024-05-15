@@ -11,10 +11,14 @@ signal message
 var _user_agent: String = "godot"
 var _status: int = 0
 var _stream: StreamPeerTCP = StreamPeerTCP.new()
-var _is_echo_setup: bool = false
+var _is_handshake_setup: bool = false
 var _is_session_setup: bool = false
 var _echo: EchoMessage
 var _instance: InstanceMessage
+var _latency: float = 0
+var _ping_start_time_msec: int = 0
+
+const PING_TIMEOUT: float = 1000
 
 enum MessageType {
 	ERROR = 0x0,
@@ -401,7 +405,7 @@ func _init(user_agent: String = "godot"):
 	_stream.set_no_delay(true)
 	_user_agent = user_agent
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if _stream.get_status() != _stream.STATUS_NONE:
 		_stream.poll()
 
@@ -415,7 +419,6 @@ func _process(delta: float) -> void:
 				pass
 			_stream.STATUS_CONNECTED:
 				_handshake()
-
 			_stream.STATUS_ERROR:
 				print("Error with socket stream.")
 				emit_signal("error")
@@ -447,10 +450,19 @@ func _exit_tree():
 
 func _recv(message_type: MessageType, payload: PackedByteArray):
 	if message_type == MessageType.ECHO:
-		var echo = EchoMessage.from_bytes(payload)
-		if echo.value == _echo.value:
-			_is_echo_setup = true
 
+		# Ping
+		if _ping_start_time_msec != 0:
+		var echo = EchoMessage.from_bytes(payload)
+			if echo.value != _echo.value:
+				print("Error, echo send and receive msgs are not the same")
+				_ping_start_time_msec = 0
+				return
+			_latency = Time.get_ticks_msec() - _ping_start_time_msec
+			_ping_start_time_msec = 0
+
+		if not _is_handshake_setup:
+			_is_handshake_setup = true
 		var session = SessionMessage.new()
 		session.flags = 3
 		session.name = _user_agent
@@ -467,6 +479,9 @@ func _recv(message_type: MessageType, payload: PackedByteArray):
 		emit_signal("message", message_type, payload)
 
 func _handshake():
+	if not _is_handshake_setup:
+		probe()
+
 	if not _is_echo_setup:
 		_echo = EchoMessage.new()
 		send(MessageType.ECHO, _echo.to_bytes())
@@ -507,3 +522,14 @@ func send(message_type: MessageType, payload: PackedByteArray) -> bool:
 		print("Error writing to stream: ", error)
 		return false
 	return true
+
+func probe() -> bool:
+	if _ping_start_time_msec != 0:
+		print("Ping/echo already started")
+		return false
+
+	_ping_start_time_msec = Time.get_ticks_msec()
+
+	_echo = EchoMessage.new()
+
+	return send(MessageType.ECHO, _echo.to_bytes())
