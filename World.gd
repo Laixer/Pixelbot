@@ -423,12 +423,12 @@ func request_start_motor() -> bool:
 	return false
 	
 func request_shutdown() -> bool:
-	# var engine = Client.EngineMessage.new()
-	# engine.rpm = 0
-	# return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
-	var control = Client.ControlMessage.new()
-	control.control_type = Client.ControlType.ENGINE_SHUTDOWN
-	return _client.send(Client.MessageType.CONTROL, control.to_bytes())
+	var engine = Client.EngineMessage.new()
+	engine.rpm = 0
+	return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
+	# var control = Client.ControlMessage.new()
+	# control.control_type = Client.ControlType.ENGINE_SHUTDOWN
+	# return _client.send(Client.MessageType.CONTROL, control.to_bytes())
 
 func request_stop_motion() -> bool:
 	print("stop motion")
@@ -443,14 +443,14 @@ func request_resume_motion() -> bool:
 func request_work_mode(work_mode: WorkMode) -> bool:
 	print("sending work mode request")
 
-	var control = Client.ControlMessage.new()
-	control.control_type = Client.ControlType.ENGINE_REQUEST
-	control.value = WorkModeRPM[work_mode]
-	return _client.send(Client.MessageType.CONTROL, control.to_bytes())
+	# var control = Client.ControlMessage.new()
+	# control.control_type = Client.ControlType.ENGINE_REQUEST
+	# control.value = WorkModeRPM[work_mode]
+	# return _client.send(Client.MessageType.CONTROL, control.to_bytes())
 
-	# var engine = Client.EngineMessage.new()
-	# engine.rpm = WorkModeRPM[work_mode]
-	# return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
+	var engine = Client.EngineMessage.new()
+	engine.rpm = WorkModeRPM[work_mode]
+	return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
 
 # func change_work_mode_text(work_mode: WorkMode):
 # 	$WorkModeHud/WorkModeSlider.value = work_mode
