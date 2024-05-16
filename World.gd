@@ -123,8 +123,10 @@ func _handle_client_connected() -> void:
 	#$Name.text = "Name: " + _client._instance.name
 
 func _handle_client_disconnected() -> void:
-	print("Client disconnected from server. Try reconnecting.")
-	_client.reconnect(Global.host, Global.port)
+	$StatusPanelLeft/Status.text = STATUS_STRING + "❌ Disconnected"
+	print("Client disconnected from server.")
+	# print("Client disconnected from server. Try reconnecting.")
+	# _client.reconnect(Global.host, Global.port)
 
 func _handle_client_error() -> void:
 	print("Client error.")
