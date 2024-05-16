@@ -410,8 +410,6 @@ func _init(user_agent: String = "godot"):
 	_receive_thread = Thread.new()
 	_receive_thread.start(_receive_thread_func)
 
-var recv_counter = 0
-var send_counter = 0
 # TODO: replace this thread by c++ GDextension
 func _receive_thread_func():
 	while _should_run_receive_t:
@@ -426,7 +424,6 @@ func _receive_thread_func():
 					call_deferred("emit_signal", "disconnected")
 					break
 				_stream.STATUS_CONNECTING:
-					# pass
 					print("Connecting...")
 					OS.delay_msec(10)
 					continue
@@ -450,7 +447,6 @@ func _receive_thread_func():
 		process_received_data(recv_data)
 
 func process_received_data(recv_data):
-	recv_counter += 1
 	var header = recv_data.slice(0, 3)
 	if header != PackedByteArray([0x4C, 0x58, 0x52]):
 		print("Error, unexpected header: ", header)
@@ -477,31 +473,8 @@ func _finalize():
 func _exit_tree():
 	_finalize()
 
-var delta_sum = 0
 func _physics_process(delta: float) -> void:
-	delta_sum += delta
-	if delta_sum > 1:
-		print ("recv counter: ", recv_counter)
-		print ("send counter: ", send_counter)
-		delta_sum = 0
-
-	# if _stream.get_status() != _stream.STATUS_NONE:
-	# 	_stream.poll()
-
-	# var new_status: int = _stream.get_status()
-	# if new_status != _status:
-	# 	_status = new_status
-	# 	match _status:
-	# 		_stream.STATUS_NONE:
-	# 			emit_signal("disconnected")
-	# 		_stream.STATUS_CONNECTING:
-	# 			pass
-	# 		_stream.STATUS_CONNECTED:
-	# 			_handshake()
-	# 		_stream.STATUS_ERROR:
-	# 			print("Error with socket stream.")
-	# 			emit_signal("error")
-
+	pass
 
 func _recv(message_type: MessageType, payload: PackedByteArray):
 	if message_type == MessageType.ECHO:
@@ -559,21 +532,27 @@ func send(message_type: MessageType, payload: PackedByteArray) -> bool:
 	if _status != _stream.STATUS_CONNECTED:
 		print("Error: Stream is not currently connected.")
 		return false
-#
-	_stream.put_data([0x4C, 0x58, 0x52])
+
+	var error = OK
+	error |= _stream.put_data([0x4C, 0x58, 0x52])
 	_stream.put_8(0x3)
 	_stream.put_8(message_type)
 	_stream.put_16(payload.size())
-	_stream.put_data([0x0, 0x0, 0x0])
+	error |= _stream.put_data([0x0, 0x0, 0x0])
 
-	var error: int = _stream.put_data(payload)
+	error |= _stream.put_data(payload)
 	if error != OK:
 		print("Error writing to stream: ", error)
 		return false
-	send_counter += 1
 	return true
 
 func probe() -> bool:
+	if _ping_start_time_msec >= PING_TIMEOUT:
+		print("Ping timeout")
+		_latency = _ping_start_time_msec
+		_ping_start_time_msec = 0
+		return false
+
 	if _ping_start_time_msec != 0:
 		print("Ping/echo already started")
 		return false
