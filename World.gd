@@ -1,18 +1,23 @@
 extends Node2D
 
 const JOYSTICK_MAX_HANDLE_DISTANCE = 25
-
 const ENGINE_START_RPM = 500
-
 const MOTION_MAX = 32000
-
 const MOTION_MIN = -32000
-
 const LIMIT_GOOD_LATENCY = 50
-
 const LIMIT_AVERAGE_LATENCY = 100
-
 const LIMIT_BAD_LATENCY = 150
+
+const LATENCY_STRING = "Latency: "
+const PROFILE_STRING = "Profile: "
+const ID_STRING = "ID: "
+const IP_STRING = "IP: "
+const VERSION_STRING = "Version: "
+const MODE_STRING = "Mode: "
+const STATUS_STRING = "Status: "
+const OPERATOR_TIME_STRING = "Operator time: "
+const EXCAVATOR_TIME_STRING = "Time: "
+const EXCAVATOR_UPTIME_STRING = "Uptime: "
 
 #TODO: Need calibration and init
 var joystick_orientation = {
@@ -118,9 +123,14 @@ func _ready():
 
 func _handle_client_connected() -> void:
 	print("Client is connected.")
-	#$Hostname.text = "Connected to: " + Global.host + ":" + str(Global.port)
-	#$Instance.text = "Instance ID: " + _client._instance.instance_id.hex_encode()
-	#$Name.text = "Name: " + _client._instance.name
+	var version_string = str(_client._instance.version_major) + "." + str(_client._instance.version_minor) + "." + str(_client._instance.version_patch)
+	$StatusPanelLeft/Profile/Version.text = VERSION_STRING + version_string
+	
+	var hex_string = _client._instance.instance_id.hex_encode()
+	var client_id_substr = hex_string.substr(hex_string.length() - 8, 8)
+	$StatusPanelLeft/Profile/ID.text = ID_STRING + "..." + client_id_substr
+	$StatusPanelLeft/Profile/IP.text = IP_STRING + Global.host
+	$StatusPanelLeft/Status.text = STATUS_STRING + "✅ Connected"
 
 func _handle_client_disconnected() -> void:
 	$StatusPanelLeft/Status.text = STATUS_STRING + "❌ Disconnected"
@@ -129,6 +139,7 @@ func _handle_client_disconnected() -> void:
 	# _client.reconnect(Global.host, Global.port)
 
 func _handle_client_error() -> void:
+	$StatusPanelLeft/Status.text = STATUS_STRING + "❌ Error"
 	print("Client error.")
 	
 func _handle_client_message(message_type: Client.MessageType, data: PackedByteArray) -> void:
@@ -137,9 +148,23 @@ func _handle_client_message(message_type: Client.MessageType, data: PackedByteAr
 	if message_type == Client.MessageType.ENGINE:
 		var engine = Client.EngineMessage.from_bytes(data)
 		update_rpm(engine.rpm)
-	# elif message_type == Client.MessageType.ECHO:
-	# 	print(_client._latency)
-	# 	pass
+	elif message_type == Client.MessageType.VMS:
+		var utc = true
+		var now = Time.get_datetime_dict_from_system(utc)
+		var time_string = "%02d:%02d:%02d" % [now.hour, now.minute, now.second]
+		$StatusPanelRight/OperatorTime.text = OPERATOR_TIME_STRING + time_string
+		
+		var vms = Client.VMSMessage.from_bytes(data)
+		var excavator_time = Time.get_datetime_dict_from_unix_time(vms.timestamp)
+		var excavator_time_string = "%02d:%02d:%02d" % [excavator_time.hour, excavator_time.minute, excavator_time.second]
+		$StatusPanelRight/Excavator/Time.text = EXCAVATOR_TIME_STRING + excavator_time_string
+
+		var days_up: int = vms.uptime / 86400
+		var hours_up: int = (vms.uptime % 86400) / 3600
+		var min_up: int = (vms.uptime % 3600) / 60
+		var sec_up: int = vms.uptime % 60
+		var time_up = "%d:%02d:%02d:%02d" % [days_up, hours_up, min_up, sec_up]
+		$StatusPanelRight/Excavator/Uptime.text = EXCAVATOR_UPTIME_STRING + time_up 
 
 func update_rpm(rpm: int):
 	$"EngineRPM".text = "Engine RPM:\n" + str(rpm)
@@ -179,12 +204,12 @@ func handle_latency() -> bool:
 		else: 
 			warning = " Connection quality BAD, motion lock FAILED"
 
-	$StatusPanelLeft/Latency.text = "Latency: " + latency_icon + " " + str(_client._latency) + " ms" + warning
+	$StatusPanelLeft/Latency.text = LATENCY_STRING + latency_icon + " " + str(_client._latency) + " ms" + warning
 	return _client.probe()
 
 func _physics_process(delta):
-	#TODO: Thread
-
+	#TODO: Thread 
+	#TODO: Timers
 	delta_sum_engine += delta
 	delta_sum_ping += delta
 
@@ -195,8 +220,9 @@ func _physics_process(delta):
 	if delta_sum_ping >= 1:
 		delta_sum_ping = 0
 		handle_latency()
+		_client.send_request(Client.MessageType.VMS)
 
-	# update_indicators()
+	# TODO: update_indicators()
 	if excavator["engine_state"] == EngineState.SHUTDOWN:
 		$ShutdownIndicator.set_indicator(true)
 		$StartMotorIndicator.set_indicator(false)
@@ -208,7 +234,7 @@ func _physics_process(delta):
 		$StopMotionIndicator.set_indicator(true)
 	elif excavator["motion_state"] == MotionState.UNLOCKED:
 		$StopMotionIndicator.set_indicator(false)
-	
+
 func map_float_to_int_range(value: float, min_float: float, max_float: float, min_int: int, max_int: int) -> int:
 	var normalized = (value - min_float) / (max_float - min_float)
 	var scaled = min_int + normalized * (max_int - min_int)

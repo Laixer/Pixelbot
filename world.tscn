@@ -118,26 +118,50 @@ text = "HALT"
 
 [node name="Status" type="Label" parent="StatusPanelLeft"]
 offset_left = 16.0
-offset_top = 96.0
+offset_top = 224.0
 offset_right = 192.0
-offset_bottom = 127.0
-text = "Status: "
+offset_bottom = 255.0
+text = "Status:      "
 vertical_alignment = 1
 
 [node name="Latency" type="Label" parent="StatusPanelLeft"]
 offset_left = 16.0
-offset_top = 128.0
+offset_top = 256.0
 offset_right = 192.0
-offset_bottom = 159.0
+offset_bottom = 287.0
 text = "Latency: "
 vertical_alignment = 1
 
 [node name="Profile" type="Label" parent="StatusPanelLeft"]
 offset_left = 16.0
-offset_top = 160.0
+offset_top = 96.0
 offset_right = 192.0
-offset_bottom = 191.0
+offset_bottom = 128.0
 text = "Profile: "
+vertical_alignment = 1
+
+[node name="ID" type="Label" parent="StatusPanelLeft/Profile"]
+offset_left = 16.0
+offset_top = 32.0
+offset_right = 192.0
+offset_bottom = 64.0
+text = "ID:"
+vertical_alignment = 1
+
+[node name="IP" type="Label" parent="StatusPanelLeft/Profile"]
+offset_left = 16.0
+offset_top = 64.0
+offset_right = 192.0
+offset_bottom = 96.0
+text = "IP:"
+vertical_alignment = 1
+
+[node name="Version" type="Label" parent="StatusPanelLeft/Profile"]
+offset_left = 16.0
+offset_top = 96.0
+offset_right = 192.0
+offset_bottom = 128.0
+text = "Version:"
 vertical_alignment = 1
 
 [node name="Mode" type="Label" parent="StatusPanelLeft"]
@@ -146,6 +170,40 @@ offset_top = 64.0
 offset_right = 192.0
 offset_bottom = 95.0
 text = "Mode: "
+vertical_alignment = 1
+
+[node name="StatusPanelRight" type="Node" parent="."]
+
+[node name="OperatorTime" type="Label" parent="StatusPanelRight"]
+offset_left = 1696.0
+offset_top = 64.0
+offset_right = 1811.0
+offset_bottom = 96.0
+text = "Operator time:"
+vertical_alignment = 1
+
+[node name="Excavator" type="Label" parent="StatusPanelRight"]
+offset_left = 1696.0
+offset_top = 96.0
+offset_right = 1816.0
+offset_bottom = 127.0
+text = "Excavator:"
+vertical_alignment = 1
+
+[node name="Time" type="Label" parent="StatusPanelRight/Excavator"]
+offset_left = 16.0
+offset_top = 32.0
+offset_right = 136.0
+offset_bottom = 63.0
+text = "Time:"
+vertical_alignment = 1
+
+[node name="Uptime" type="Label" parent="StatusPanelRight/Excavator"]
+offset_left = 16.0
+offset_top = 64.0
+offset_right = 156.0
+offset_bottom = 95.0
+text = "Uptime:"
 vertical_alignment = 1
 
 [node name="ShutdownIndicator" type="Sprite2D" parent="."]
