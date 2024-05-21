@@ -533,16 +533,16 @@ func send(message_type: MessageType, payload: PackedByteArray) -> bool:
 		print("Error: Stream is not currently connected.")
 		return false
 
-	var error = OK
-	error |= _stream.put_data([0x4C, 0x58, 0x52])
-	_stream.put_8(0x3)
-	_stream.put_8(message_type)
-	_stream.put_16(payload.size())
-	error |= _stream.put_data([0x0, 0x0, 0x0])
+	var header = PackedByteArray([0x4C, 0x58, 0x52])
+	var version = PackedByteArray([0x3])
+	var type_bytes = PackedByteArray([message_type]) 
+	var size = PackedByteArray(Message._encode_be_s16(payload.size()))  
+	var padding = PackedByteArray([0x0, 0x0, 0x0])
+	var send_message = header + version + type_bytes + size + padding + payload
 
-	error |= _stream.put_data(payload)
-	if error != OK:
-		print("Error writing to stream: ", error)
+	var send_error = _stream.put_data(send_message)
+	if send_error != OK:
+		print("Error writing to stream: ", send_error)
 		return false
 	return true
 
