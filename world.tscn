@@ -19,6 +19,13 @@
 [node name="World" type="Node2D"]
 script = ExtResource("1_ufefb")
 
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
+offset_right = 1920.0
+offset_bottom = 1088.0
+stream = ExtResource("15_f2sfo")
+autoplay = true
+expand = true
+
 [node name="NinePatchRect" type="NinePatchRect" parent="."]
 offset_left = 624.0
 offset_top = 920.0
@@ -141,6 +148,7 @@ text = "Profile: "
 vertical_alignment = 1
 
 [node name="ID" type="Label" parent="StatusPanelLeft/Profile"]
+layout_mode = 0
 offset_left = 16.0
 offset_top = 32.0
 offset_right = 192.0
@@ -149,6 +157,7 @@ text = "ID:"
 vertical_alignment = 1
 
 [node name="IP" type="Label" parent="StatusPanelLeft/Profile"]
+layout_mode = 0
 offset_left = 16.0
 offset_top = 64.0
 offset_right = 192.0
@@ -157,6 +166,7 @@ text = "IP:"
 vertical_alignment = 1
 
 [node name="Version" type="Label" parent="StatusPanelLeft/Profile"]
+layout_mode = 0
 offset_left = 16.0
 offset_top = 96.0
 offset_right = 192.0
@@ -191,6 +201,7 @@ text = "Excavator:"
 vertical_alignment = 1
 
 [node name="Time" type="Label" parent="StatusPanelRight/Excavator"]
+layout_mode = 0
 offset_left = 16.0
 offset_top = 32.0
 offset_right = 136.0
@@ -199,6 +210,7 @@ text = "Time:"
 vertical_alignment = 1
 
 [node name="Uptime" type="Label" parent="StatusPanelRight/Excavator"]
+layout_mode = 0
 offset_left = 16.0
 offset_top = 64.0
 offset_right = 156.0
@@ -526,14 +538,6 @@ text = "BOOST"
 position = Vector2(40, 40)
 scale = Vector2(0.078125, 0.078125)
 texture = ExtResource("14_g0avh")
-
-[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
-offset_left = 208.0
-offset_top = 72.0
-offset_right = 1616.0
-offset_bottom = 840.0
-stream = ExtResource("15_f2sfo")
-autoplay = true
 
 [connection signal="pressed" from="StartMotor" to="." method="_on_start_motor_pressed"]
 [connection signal="pressed" from="Shutdown" to="." method="_on_shutdown_pressed"]
