@@ -1,9 +1,12 @@
 extends Node2D
 
 const JOYSTICK_MAX_HANDLE_DISTANCE = 25
+const JOYSTICK_DEADZONE = 0.1
 const ENGINE_START_RPM = 500
 const MOTION_MAX = 32000
 const MOTION_MIN = -32000
+const MOTION_MAX_DEFAULT = 16000
+const MOTION_MIN_DEFAULT = -16000
 const LIMIT_GOOD_LATENCY = 50
 const LIMIT_AVERAGE_LATENCY = 100
 const LIMIT_BAD_LATENCY = 150
@@ -20,10 +23,31 @@ const EXCAVATOR_TIME_STRING = "Time: "
 const EXCAVATOR_UPTIME_STRING = "Uptime: "
 
 #TODO: Need calibration and init
-var joystick_orientation = {
-	"left_joystick": 1,
-	"right_joystick": 0
+var joypad_map = {
+	"right": 0,
+	"left": 1,
+	"x": 0,
+	"y": 1,
+	"slider": 3,
+	"demo": 8,
+	"stop_motion": 9,
+	"start": 10,
+	"stop": 11,
 }
+
+enum Actuator {
+	BOOM = 0,
+	SLEW = 1,
+	LIMPRIGHT = 2,
+	LIMPLEFT = 3,
+	ARM = 4,
+	ATTACHMENT = 5,
+}
+
+var motion_value = {
+	"max": MOTION_MAX_DEFAULT,
+	"min": MOTION_MIN_DEFAULT,
+} 
 
 var delta_sum_ping = 0
 var delta_sum_engine = 0
@@ -241,73 +265,77 @@ func map_float_to_int_range(value: float, min_float: float, max_float: float, mi
 	return int(round(scaled))
 	
 func _input(event):
+	# print(event)
 	if event is InputEventJoypadMotion:
-		if event.device == joystick_orientation["right_joystick"]:
-			if event.axis == 3: # Slider
-				var work_mode = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 9)
-				handle_work_mode(work_mode)
-				return
-			
-			# Ignore drift
-			if abs(event.axis_value) < 0.05:
-				return
-				
-			if !motion_allowed(false):
-				$JoystickOuterRight.toggle_color_duration(0.1)
-				return
-		
-			if event.axis == 0: # X axis
-				handle_attachment(event.axis_value)
-			elif event.axis == 1: # Y axis
-				handle_boom(event.axis_value)
-			# # TODO: These requests are redundant requests most of the time, find a better method
-			# # Send rpm request when joystick is moved and previously the rpm was ignored (because of shutdown)
-			if (event.axis == 0||event.axis == 1)&&engine_started_rpm_update:
-				var slider_value = Input.get_joy_axis(joystick_orientation["right_joystick"], 3)
-				var work_mode = map_float_to_int_range(slider_value, 1.0, -1.0, 0, 9)
-				handle_work_mode(work_mode) 
-				engine_started_rpm_update = false
-
-		elif event.device == joystick_orientation["left_joystick"]:
-			#TODO: handle_left_joystick(event.axis, event.axis_value)
-			if event.axis == 3: # Slider
-				if demo_mode:
-					var rpm = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 2000)
-					update_rpm(rpm)
-				return
-			
-			# Ignore drift
-			if abs(event.axis_value) < 0.05:
-				return
-				
-			if !motion_allowed(false):
-				$JoystickOuterLeft.toggle_color_duration(0.1)				
-				return
-				 
-			if event.axis == 0: # X axis
-				handle_slew(event.axis_value)
-			elif event.axis == 1: # Y axis
-				handle_arm(event.axis_value)
-			# # TODO: These requests are redundant requests most of the time, find a better method
-			# # Send rpm request when joystick is moved and previously the rpm was ignored (because of shutdownn)
-			if (event.axis == 0 || event.axis == 1) && engine_started_rpm_update:
-				var slider_value = Input.get_joy_axis(joystick_orientation["right_joystick"], 3)
-				var work_mode = map_float_to_int_range(slider_value, 1.0, -1.0, 0, 9)
-				handle_work_mode(work_mode) 
-				engine_started_rpm_update = false
-				
+		if not (event.device == joypad_map["left"]) and not (event.device == joypad_map["right"]):
+			return
+		if event.axis == joypad_map["x"] or event.axis == joypad_map["y"]:			
+			handle_joystick(event)
+		elif event.axis == joypad_map["slider"]:
+			handle_slider(event)
 	elif event is InputEventJoypadButton:
-		if event.device == joystick_orientation["right_joystick"]:
-			# print(event)
-			if event.button_index == 8: # Middle Left
-				toggle_demo_mode(event.pressed)
-			elif event.button_index == 9: # Middle right
-				handle_stop(event.pressed)
-			elif event.button_index == 10: # Bottom left
-				handle_start(event.pressed)
-			elif event.button_index == 11: # Bottom right
-				handle_shutdown(event.pressed)
+		handle_joypad_buttons(event)
 
+func handle_joypad_buttons(event):
+	if event.device != joypad_map["right"]:
+		return
+
+	if event.button_index == 8: # Middle Left
+		toggle_demo_mode(event.pressed)
+	elif event.button_index == 9: # Middle right
+		handle_stop(event.pressed)
+	elif event.button_index == 10: # Bottom left
+		handle_start(event.pressed)
+	elif event.button_index == 11: # Bottom right
+		handle_shutdown(event.pressed)
+
+func handle_slider(event):
+	if event.device == joypad_map["right"]:
+		var work_mode = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 9)
+		handle_work_mode(work_mode)
+	elif event.device == joypad_map["left"] and demo_mode:
+		var rpm = map_float_to_int_range(event.axis_value, 1.0, -1.0, 0, 2000)
+		update_rpm(rpm)
+
+func handle_joystick(event):
+	#ignore drift
+	var x_abs = abs(Input.get_joy_axis(event.device, joypad_map["x"]))
+	var y_abs = abs(Input.get_joy_axis(event.device, joypad_map["y"]))
+	if x_abs <= JOYSTICK_DEADZONE and y_abs <= JOYSTICK_DEADZONE:
+		return
+				
+	var joystick
+	var actuator
+	if event.device == joypad_map["right"] and event.axis == joypad_map["x"]:
+		joystick = $JoystickRight
+		actuator =  Actuator.ATTACHMENT
+	elif event.device == joypad_map["left"] and event.axis == joypad_map["x"]:
+		joystick = $JoystickLeft
+		actuator =  Actuator.SLEW
+	elif event.device == joypad_map["right"] and event.axis == joypad_map["y"]:
+		joystick = $JoystickRight
+		actuator =  Actuator.BOOM
+	elif event.device == joypad_map["left"] and event.axis == joypad_map["y"]:
+		joystick = $JoystickLeft
+		actuator =  Actuator.ARM
+		
+	if !motion_allowed():
+		joystick.get_node("JoystickOuter").toggle_color_duration(0.1)
+		return
+
+	send_motion_message(event.axis_value, actuator)
+
+	if event.axis == joypad_map["x"]:
+		joystick.get_node("JoystickInner").position.x = joystick.get_node("JoystickInner").start_position.x + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
+	elif event.axis == joypad_map["y"]:
+		joystick.get_node("JoystickInner").position.y = joystick.get_node("JoystickInner").start_position.y + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
+
+	if engine_started_rpm_update:
+		var slider_value = Input.get_joy_axis(joypad_map["right"], joypad_map["slider"])
+		var work_mode = map_float_to_int_range(slider_value, 1.0, -1.0, 0, 9)
+		handle_work_mode(work_mode) 
+		engine_started_rpm_update = false
+	
 func toggle_demo_mode(pressed: bool):
 	if !pressed:
 		return
@@ -369,6 +397,18 @@ func handle_stop(pressed: bool):
 			$StopMotion.set_pressed(false)
 			$StopMotionIndicator.set_indicator(false)
 			excavator["motion_state"] = MotionState.UNLOCKED
+
+func send_motion_message(axis_value: float, actuator: Actuator) -> bool:
+	var motion = Client.MotionMessage.new()
+	motion.command = Client.CHANGE
+	
+	var change_set = Client.MotionChangeSetMessage.new()
+	change_set.actuator = actuator
+	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, MOTION_MAX, MOTION_MIN)
+	
+	motion.value_list = [change_set]
+	
+	return _client.send(Client.MessageType.MOTION, motion.to_bytes())	
 					
 func handle_attachment(axis_value: float) -> bool:
 	#print("handle_attachment ", axis_value)
@@ -430,15 +470,11 @@ func handle_arm(axis_value: float) -> bool:
 	
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 
-func motion_allowed(print_error: bool) -> bool:
+func motion_allowed() -> bool:
 	if excavator["engine_state"] != EngineState.RUNNING:
-		if print_error:
-			print("Engine not started")
 		return false
 
 	if excavator["motion_state"] == MotionState.LOCKED:
-		if print_error:
-			print("Stop motion enabled")
 		return false
 
 	return true
