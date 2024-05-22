@@ -423,10 +423,6 @@ func _receive_thread_func():
 					print("Error, status none, disconnect.")
 					call_deferred("emit_signal", "disconnected")
 					break
-				_stream.STATUS_CONNECTING:
-					print("Connecting...")
-					OS.delay_msec(10)
-					continue
 				_stream.STATUS_CONNECTED:
 					_handshake()
 				_stream.STATUS_ERROR:
@@ -435,13 +431,22 @@ func _receive_thread_func():
 					break
 
 		# When we are in the initial state do not recv data, instead wait
-		if _stream.get_status() == StreamPeerTCP.STATUS_NONE:
+		if new_status == StreamPeerTCP.STATUS_NONE:
+			OS.delay_msec(10)
+			continue
+
+		if new_status == _stream.STATUS_CONNECTING:
+			print("Connecting...")
 			OS.delay_msec(10)
 			continue
 
 		var data_array = _stream.get_data(10)
 		if data_array[0] != OK:
+			print("Error receiving data, error code: ", data_array[0])
+			var remaining = _stream.get_available_bytes()
+			_stream.get_data(remaining)
 			call_deferred("emit_signal", "error")
+			OS.delay_msec(10)
 			continue
 		var recv_data = data_array[1]
 		process_received_data(recv_data)
