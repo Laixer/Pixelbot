@@ -1,5 +1,2 @@
 # Godot 4+ specific ignores
 .godot/
-addons/pixelbot-native/godot-cpp
-addons/pixelbot-native/win64
-addons/pixelbot-native/linux64
