@@ -236,17 +236,10 @@ func handle_latency() -> bool:
 func _physics_process(delta):
 	#TODO: Thread 
 	#TODO: Timers
-	delta_sum_engine += delta
 	delta_sum_ping += delta
-
-	if delta_sum_engine >= 0.01:
-		delta_sum_engine = 0
-		_client.send_request(Client.MessageType.ENGINE)
-		
 	if delta_sum_ping >= 1:
 		delta_sum_ping = 0
 		handle_latency()
-		_client.send_request(Client.MessageType.VMS)
 
 	# TODO: update_indicators()
 	if excavator["engine_state"] == EngineState.SHUTDOWN:
