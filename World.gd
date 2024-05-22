@@ -15,6 +15,7 @@ const LATENCY_STRING = "Latency: "
 const PROFILE_STRING = "Profile: "
 const ID_STRING = "ID: "
 const IP_STRING = "IP: "
+const SN_STRING = "SN: "
 const VERSION_STRING = "Version: "
 const MODE_STRING = "Mode: "
 const STATUS_STRING = "Status: "
@@ -155,6 +156,7 @@ func _handle_client_connected() -> void:
 	$StatusPanelLeft/Profile/ID.text = ID_STRING + "..." + client_id_substr
 	$StatusPanelLeft/Profile/IP.text = IP_STRING + Global.host
 	$StatusPanelLeft/Status.text = STATUS_STRING + "✅ Connected"
+	$StatusPanelLeft/Profile/SN.text = SN_STRING + _client._instance.serial_number
 
 func _handle_client_disconnected() -> void:
 	$StatusPanelLeft/Status.text = STATUS_STRING + "❌ Disconnected"

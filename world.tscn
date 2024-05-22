@@ -25,6 +25,7 @@ offset_bottom = 1088.0
 stream = ExtResource("15_f2sfo")
 autoplay = true
 expand = true
+metadata/_edit_lock_ = true
 
 [node name="NinePatchRect" type="NinePatchRect" parent="."]
 offset_left = 624.0
@@ -38,29 +39,33 @@ patch_margin_top = 10
 patch_margin_right = 10
 patch_margin_bottom = 10
 
-[node name="JoystickOuterRight" type="Sprite2D" parent="."]
+[node name="JoystickRight" type="Node" parent="."]
+
+[node name="JoystickOuter" type="Sprite2D" parent="JoystickRight"]
 position = Vector2(1143.2, 999.2)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("3_m5igp")
 script = ExtResource("4_m2mme")
 
-[node name="Timer" type="Timer" parent="JoystickOuterRight"]
+[node name="Timer" type="Timer" parent="JoystickRight/JoystickOuter"]
 
-[node name="JoystickOuterLeft" type="Sprite2D" parent="."]
-position = Vector2(695.2, 999.2)
-scale = Vector2(0.4, 0.4)
-texture = ExtResource("3_m5igp")
-script = ExtResource("4_m2mme")
-
-[node name="Timer" type="Timer" parent="JoystickOuterLeft"]
-
-[node name="JoystickInnerRight" type="Sprite2D" parent="."]
+[node name="JoystickInner" type="Sprite2D" parent="JoystickRight"]
 position = Vector2(1143.2, 999.2)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("4_sy0pa")
 script = ExtResource("4_ec0kx")
 
-[node name="JoystickInnerLeft" type="Sprite2D" parent="."]
+[node name="JoystickLeft" type="Node" parent="."]
+
+[node name="JoystickOuter" type="Sprite2D" parent="JoystickLeft"]
+position = Vector2(695.2, 999.2)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("3_m5igp")
+script = ExtResource("4_m2mme")
+
+[node name="Timer" type="Timer" parent="JoystickLeft/JoystickOuter"]
+
+[node name="JoystickInner" type="Sprite2D" parent="JoystickLeft"]
 position = Vector2(696.2, 999.2)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("4_sy0pa")
@@ -125,17 +130,17 @@ text = "HALT"
 
 [node name="Status" type="Label" parent="StatusPanelLeft"]
 offset_left = 16.0
-offset_top = 224.0
+offset_top = 256.0
 offset_right = 192.0
-offset_bottom = 255.0
+offset_bottom = 287.0
 text = "Status:      "
 vertical_alignment = 1
 
 [node name="Latency" type="Label" parent="StatusPanelLeft"]
 offset_left = 16.0
-offset_top = 256.0
+offset_top = 288.0
 offset_right = 192.0
-offset_bottom = 287.0
+offset_bottom = 319.0
 text = "Latency: "
 vertical_alignment = 1
 
@@ -159,19 +164,28 @@ vertical_alignment = 1
 [node name="IP" type="Label" parent="StatusPanelLeft/Profile"]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 64.0
+offset_top = 96.0
 offset_right = 192.0
-offset_bottom = 96.0
+offset_bottom = 128.0
 text = "IP:"
 vertical_alignment = 1
 
 [node name="Version" type="Label" parent="StatusPanelLeft/Profile"]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 96.0
+offset_top = 128.0
 offset_right = 192.0
-offset_bottom = 128.0
+offset_bottom = 160.0
 text = "Version:"
+vertical_alignment = 1
+
+[node name="SN" type="Label" parent="StatusPanelLeft/Profile"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 64.0
+offset_right = 192.0
+offset_bottom = 96.0
+text = "SN:"
 vertical_alignment = 1
 
 [node name="Mode" type="Label" parent="StatusPanelLeft"]

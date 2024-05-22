@@ -169,6 +169,12 @@ class EchoMessage:
 		return echo
 
 #############################
+enum SessionFlag {
+	STREAM = 1,
+	CONTROL = 2,
+	COMMAND = 4,
+	FAILSAFE = 6,
+}
 
 class SessionMessage:
 	extends Message
@@ -246,6 +252,7 @@ class InstanceMessage:
 	var version_minor
 	var version_patch
 	var name
+	var serial_number
 
 	func to_bytes() -> PackedByteArray:
 		var buffer = PackedByteArray()
@@ -255,6 +262,7 @@ class InstanceMessage:
 		buffer.append(version_minor)
 		buffer.append(version_patch)
 		buffer.append_array(name.to_utf8_buffer())
+		buffer.append_array(serial_number.to_utf8_buffer())
 
 		return buffer
 
@@ -267,12 +275,17 @@ class InstanceMessage:
 		instance.version_patch = data.decode_u8(19)
 
 		var name_len = _decode_be_s16(data.slice(20, 22))
-		instance.name = data.slice(22, 22 + name_len).get_string_from_utf8()
+		var name_end = 22 + name_len
+		instance.name = data.slice(22, name_end).get_string_from_utf8()
+
+		var serial_number_len = _decode_be_s16(data.slice(name_end, name_end + 2))
+		var serial_number_end = name_end + 2 + serial_number_len
+		instance.serial_number = data.slice(name_end + 2, serial_number_end).get_string_from_utf8()
 
 		return instance
 
 	func get_string_representation():
-		return "Instance ID: " + instance_id.hex_encode() + "; Machine Type: " + str(machine_type) + "; Version: " + str(version_major) + "." + str(version_minor) + "." + str(version_patch) + "; Name: " + name
+		return "Instance ID: " + instance_id.hex_encode() + "; Machine Type: " + str(machine_type) + "; Version: " + str(version_major) + "." + str(version_minor) + "." + str(version_patch) + "; Name: " + name + "; Serial number: " + serial_number + "."
 
 #############################
 
@@ -496,7 +509,7 @@ func _recv(message_type: MessageType, payload: PackedByteArray):
 		if not _is_handshake_setup:
 			_is_handshake_setup = true
 			var session = SessionMessage.new()
-			session.flags = 6
+			session.flags = SessionFlag.CONTROL |  SessionFlag.COMMAND | SessionFlag.FAILSAFE | SessionFlag.STREAM
 			session.name = _user_agent
 			send(MessageType.SESSION, session.to_bytes())
 
