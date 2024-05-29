@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://bkwjduy3nskeg"]
+[gd_scene load_steps=17 format=3 uid="uid://bkwjduy3nskeg"]
 
 [ext_resource type="Script" path="res://World.gd" id="1_ufefb"]
 [ext_resource type="Texture2D" uid="uid://bklny0kr2ebs2" path="res://VirtualJoystickPack/JoystickSplitted.png" id="3_m5igp"]
@@ -13,7 +13,8 @@
 [ext_resource type="Script" path="res://StartMotorIndicator.gd" id="11_jpssk"]
 [ext_resource type="Script" path="res://StopMotionIndicator.gd" id="12_ay2qu"]
 [ext_resource type="Texture2D" uid="uid://cf1uv1ey015dc" path="res://themes/WorkmodeHud/WorkmodeHud.png" id="13_5c2qr"]
-[ext_resource type="Texture2D" uid="uid://dt8cv05g1q0br" path="res://themes/Other/pngegg.png" id="14_g0avh"]
+[ext_resource type="Texture2D" path="res://themes/Other/pngegg.png" id="14_g0avh"]
+[ext_resource type="Script" path="res://Settings.gd" id="15_o6f3m"]
 
 [sub_resource type="FFmpegVideoStream" id="FFmpegVideoStream_5a0nu"]
 file = "udp://127.0.0.1:8000"
@@ -550,13 +551,18 @@ grow_horizontal = 2
 grow_vertical = 2
 text = "BOOST"
 
-[node name="Pngegg" type="Sprite2D" parent="."]
-position = Vector2(40, 40)
-scale = Vector2(0.078125, 0.078125)
-texture = ExtResource("14_g0avh")
+[node name="Settings" type="Button" parent="."]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 64.0
+offset_bottom = 64.0
+icon = ExtResource("14_g0avh")
+expand_icon = true
+script = ExtResource("15_o6f3m")
 
 [connection signal="pressed" from="StartMotor" to="." method="_on_start_motor_pressed"]
 [connection signal="pressed" from="Shutdown" to="." method="_on_shutdown_pressed"]
 [connection signal="button_down" from="StopMotion" to="." method="_on_stop_motor_button_down"]
 [connection signal="button_up" from="StopMotion" to="." method="_on_stop_motor_button_up"]
 [connection signal="pressed" from="StopMotion" to="." method="_on_stop_motion_pressed"]
+[connection signal="pressed" from="Settings" to="Settings" method="_on_pressed"]
