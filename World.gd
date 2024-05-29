@@ -135,16 +135,23 @@ func _ready():
 	#$Shutdown.disabled = true
 	#Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
+	init_client()
+
+	#TODO: Connect once, not once per scene
+
+	$StatusPanelLeft/Mode.text = "Mode: Normal"
+func init_client():
+	_client = Client.new("godot/4.2")
 	_client.connected.connect(_handle_client_connected)
 	_client.disconnected.connect(_handle_client_disconnected)
 	_client.error.connect(_handle_client_error)
 	_client.message.connect(_handle_client_message)
-	
+	_client.connect_to_host(Global.host, Global.port)
 	add_child(_client)
 
-	#TODO: Connect once, not once per scene
-	_client.connect_to_host(Global.host, Global.port)
-	$StatusPanelLeft/Mode.text = "Mode: Normal"
+func deinit_client():
+	#_client._finalize()
+	remove_child(_client)
 
 func _handle_client_connected() -> void:
 	print("Client is connected.")
@@ -159,9 +166,11 @@ func _handle_client_connected() -> void:
 	$StatusPanelLeft/Profile/SN.text = SN_STRING + _client._instance.serial_number
 
 func _handle_client_disconnected() -> void:
-	$StatusPanelLeft/Status.text = STATUS_STRING + "❌ Disconnected"
+	$StatusPanelLeft/Status.text = STATUS_STRING + "❌ Disconnected, reconnecting..."
 	print("Client disconnected from server.")
-	# print("Client disconnected from server. Try reconnecting.")
+	print("Reconnect.")
+	deinit_client()
+	init_client()
 	# _client.reconnect(Global.host, Global.port)
 
 func _handle_client_error() -> void:
