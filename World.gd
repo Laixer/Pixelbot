@@ -56,6 +56,8 @@ var delta_sum_engine = 0
 const Client = preload ("res://glonax-client.gd")
 var _client
 
+var _excavator_uptime = 0
+var _excavator_time = 0
 
 enum EngineState {
 	RUNNING,
@@ -141,6 +143,32 @@ func _ready():
 	#TODO: Connect once, not once per scene
 
 	$StatusPanelLeft/Mode.text = "Mode: Normal"
+
+	var timer : Timer = Timer.new()
+	add_child(timer)
+	timer.one_shot = false
+	timer.autostart = true
+	timer.wait_time = 0.5
+	timer.timeout.connect(time_update)
+	timer.start()
+
+func time_update():
+	var utc = true
+	var now = Time.get_datetime_dict_from_system(utc)
+	var time_string = "%02d:%02d:%02d" % [now.hour, now.minute, now.second]
+	$StatusPanelRight/OperatorTime.text = OPERATOR_TIME_STRING + time_string
+	
+	var excavator_time = Time.get_datetime_dict_from_unix_time(_excavator_time)
+	var excavator_time_string = "%02d:%02d:%02d" % [excavator_time.hour, excavator_time.minute, excavator_time.second]
+	$StatusPanelRight/Excavator/Time.text = EXCAVATOR_TIME_STRING + excavator_time_string
+
+	var days_up: int = _excavator_uptime / 86400
+	var hours_up: int = (_excavator_uptime % 86400) / 3600
+	var min_up: int = (_excavator_uptime % 3600) / 60
+	var sec_up: int = _excavator_uptime % 60
+	var time_up = "%d:%02d:%02d:%02d" % [days_up, hours_up, min_up, sec_up]
+	$StatusPanelRight/Excavator/Uptime.text = EXCAVATOR_UPTIME_STRING + time_up 
+
 func init_client():
 	_client = Client.new("godot/4.2")
 	_client.connected.connect(_handle_client_connected)
@@ -185,22 +213,9 @@ func _handle_client_message(message_type: Client.MessageType, data: PackedByteAr
 		var engine = Client.EngineMessage.from_bytes(data)
 		update_rpm(engine.rpm)
 	elif message_type == Client.MessageType.VMS:
-		var utc = true
-		var now = Time.get_datetime_dict_from_system(utc)
-		var time_string = "%02d:%02d:%02d" % [now.hour, now.minute, now.second]
-		$StatusPanelRight/OperatorTime.text = OPERATOR_TIME_STRING + time_string
-		
 		var vms = Client.VMSMessage.from_bytes(data)
-		var excavator_time = Time.get_datetime_dict_from_unix_time(vms.timestamp)
-		var excavator_time_string = "%02d:%02d:%02d" % [excavator_time.hour, excavator_time.minute, excavator_time.second]
-		$StatusPanelRight/Excavator/Time.text = EXCAVATOR_TIME_STRING + excavator_time_string
-
-		var days_up: int = vms.uptime / 86400
-		var hours_up: int = (vms.uptime % 86400) / 3600
-		var min_up: int = (vms.uptime % 3600) / 60
-		var sec_up: int = vms.uptime % 60
-		var time_up = "%d:%02d:%02d:%02d" % [days_up, hours_up, min_up, sec_up]
-		$StatusPanelRight/Excavator/Uptime.text = EXCAVATOR_UPTIME_STRING + time_up 
+		_excavator_uptime = vms.uptime
+		_excavator_time = vms.timestamp
 
 func update_rpm(rpm: int):
 	$"EngineRPM".text = "Engine RPM:\n" + str(rpm)
