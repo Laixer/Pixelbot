@@ -14,15 +14,17 @@
 [ext_resource type="Script" path="res://StopMotionIndicator.gd" id="12_ay2qu"]
 [ext_resource type="Texture2D" uid="uid://cf1uv1ey015dc" path="res://themes/WorkmodeHud/WorkmodeHud.png" id="13_5c2qr"]
 [ext_resource type="Texture2D" uid="uid://dt8cv05g1q0br" path="res://themes/Other/pngegg.png" id="14_g0avh"]
-[ext_resource type="VideoStream" path="res://assets/The Volvo EC550E crawler excavator true 50-ton machine.mp4" id="15_f2sfo"]
+
+[sub_resource type="FFmpegVideoStream" id="FFmpegVideoStream_5a0nu"]
+file = "udp://127.0.0.1:8000"
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_ufefb")
 
 [node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
 offset_right = 1920.0
-offset_bottom = 1088.0
-stream = ExtResource("15_f2sfo")
+offset_bottom = 1080.0
+stream = SubResource("FFmpegVideoStream_5a0nu")
 autoplay = true
 expand = true
 metadata/_edit_lock_ = true
