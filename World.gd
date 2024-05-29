@@ -54,7 +54,8 @@ var delta_sum_ping = 0
 var delta_sum_engine = 0
 
 const Client = preload ("res://glonax-client.gd")
-var _client: Client = Client.new("godot/4.2")
+var _client
+
 
 enum EngineState {
 	RUNNING,
