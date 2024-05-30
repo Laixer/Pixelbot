@@ -32,6 +32,9 @@ const EXCAVATOR_UPTIME_STRING = "Uptime: "
 @onready var stop_button = $JoypadPanel/StopMotion
 @onready var stop_indicator = $JoypadPanel/StopMotionIndicator
 
+@onready var workmode_slider = $EnginePanel/WorkModeHud/WorkModeSlider
+@onready var rpm_indicator = $EnginePanel/EngineRPM
+
 #TODO: Need calibration and init
 var joypad_map = {
 	"right": 0,
@@ -224,7 +227,7 @@ func _handle_client_message(message_type: Client.MessageType, data: PackedByteAr
 		_excavator_time = vms.timestamp
 
 func update_rpm(rpm: int):
-	$"EngineRPM".text = "Engine RPM:\n" + str(rpm)
+	rpm_indicator.text = "Engine RPM:\n" + str(rpm)
 	if rpm == 0:
 		excavator["engine_state"] = EngineState.SHUTDOWN
 		engine_state_changed = true
@@ -249,8 +252,8 @@ func handle_latency() -> bool:
 		latency_icon = "🔴"
 	else: 
 		if request_stop_motion():
-			$StopMotion.set_pressed(true)
-			$StopMotionIndicator.set_indicator(true)
+			stop_button.set_pressed(true)
+			stop_indicator.set_indicator(true)
 			excavator["motion_state"] = MotionState.LOCKED
 			warning = " Connection quality BAD, motion locked"
 			latency_bad = true
@@ -268,18 +271,17 @@ func _physics_process(delta):
 		delta_sum_ping = 0
 		handle_latency()
 
-	# TODO: update_indicators()
 	if excavator["engine_state"] == EngineState.SHUTDOWN:
-		$ShutdownIndicator.set_indicator(true)
-		$StartMotorIndicator.set_indicator(false)
+		shutdown_indicator.set_indicator(true)
+		start_indicator.set_indicator(false)
 	elif excavator["engine_state"] == EngineState.RUNNING:
-		$ShutdownIndicator.set_indicator(false)
-		$StartMotorIndicator.set_indicator(true)
+		shutdown_indicator.set_indicator(false)
+		start_indicator.set_indicator(true)
 
 	if excavator["motion_state"] == MotionState.LOCKED:
-		$StopMotionIndicator.set_indicator(true)
+		stop_indicator.set_indicator(true)
 	elif excavator["motion_state"] == MotionState.UNLOCKED:
-		$StopMotionIndicator.set_indicator(false)
+		stop_indicator.set_indicator(false)
 
 func map_float_to_int_range(value: float, min_float: float, max_float: float, min_int: int, max_int: int) -> int:
 	var normalized = (value - min_float) / (max_float - min_float)
@@ -371,7 +373,7 @@ func toggle_demo_mode(pressed: bool):
 
 func handle_shutdown(pressed: bool):
 	if !pressed:
-		$Shutdown.set_pressed(false)
+		shutdown_button.set_pressed(false)
 		return
 
 	if excavator["engine_state"] == EngineState.SHUTDOWN:
@@ -382,11 +384,11 @@ func handle_shutdown(pressed: bool):
 		print("Request shutdown communication error")
 		return
 
-	$Shutdown.set_pressed(true)
+	shutdown_button.set_pressed(true)
 
 func handle_start(pressed: bool):
 	if !pressed:
-		$StartMotor.set_pressed(false)
+		start_button.set_pressed(false)
 		return
 	
 	if excavator["engine_state"] == EngineState.RUNNING:
@@ -397,7 +399,7 @@ func handle_start(pressed: bool):
 		print("Request start motor communication error")
 		return
 
-	$StartMotor.set_pressed(true)
+	start_button.set_pressed(true)
 
 func handle_stop(pressed: bool):
 	if latency_bad:
@@ -406,13 +408,13 @@ func handle_stop(pressed: bool):
 
 	if pressed:
 		if request_stop_motion():
-			$StopMotion.set_pressed(true)
-			$StopMotionIndicator.set_indicator(true)
+			stop_button.set_pressed(true)
+			stop_indicator.set_indicator(true)
 			excavator["motion_state"] = MotionState.LOCKED
 	else:
 		if request_resume_motion():
-			$StopMotion.set_pressed(false)
-			$StopMotionIndicator.set_indicator(false)
+			stop_button.set_pressed(false)
+			stop_indicator.set_indicator(false)
 			excavator["motion_state"] = MotionState.UNLOCKED
 
 func send_motion_message(axis_value: float, actuator: Actuator) -> bool:
@@ -438,8 +440,7 @@ func motion_allowed() -> bool:
 
 func request_start_motor() -> bool:
 	if request_work_mode(WorkMode.IDLE_1):
-		#change_work_mode_text(WorkMode.IDLE_1)
-		$WorkModeHud/WorkModeSlider.value = WorkMode.IDLE_1
+		workmode_slider.value = WorkMode.IDLE_1
 		return true
 	return false
 	
@@ -471,7 +472,7 @@ func handle_work_mode(work_mode_value: int):
 		print("Error, not a work mode value")
 		return
 	
-	$WorkModeHud/WorkModeSlider.value = work_mode_value
+	workmode_slider.value = work_mode_value
 
 	if excavator["engine_state"] != EngineState.RUNNING:
 		print("Engine not started")

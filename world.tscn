@@ -13,7 +13,7 @@
 [ext_resource type="Script" path="res://StartMotorIndicator.gd" id="11_jpssk"]
 [ext_resource type="Script" path="res://StopMotionIndicator.gd" id="12_ay2qu"]
 [ext_resource type="Texture2D" uid="uid://cf1uv1ey015dc" path="res://themes/WorkmodeHud/WorkmodeHud.png" id="13_5c2qr"]
-[ext_resource type="Texture2D" path="res://themes/Other/pngegg.png" id="14_g0avh"]
+[ext_resource type="Texture2D" uid="uid://dt8cv05g1q0br" path="res://themes/Other/pngegg.png" id="14_g0avh"]
 [ext_resource type="Script" path="res://Settings.gd" id="15_o6f3m"]
 
 [sub_resource type="FFmpegVideoStream" id="FFmpegVideoStream_5a0nu"]
@@ -30,51 +30,9 @@ autoplay = true
 expand = true
 metadata/_edit_lock_ = true
 
-[node name="NinePatchRect" type="NinePatchRect" parent="."]
-offset_left = 624.0
-offset_top = 920.0
-offset_right = 1216.0
-offset_bottom = 1088.0
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 10
-patch_margin_top = 10
-patch_margin_right = 10
-patch_margin_bottom = 10
+[node name="EnginePanel" type="Node" parent="."]
 
-[node name="JoystickRight" type="Node" parent="."]
-
-[node name="JoystickOuter" type="Sprite2D" parent="JoystickRight"]
-position = Vector2(1143.2, 999.2)
-scale = Vector2(0.4, 0.4)
-texture = ExtResource("3_m5igp")
-script = ExtResource("4_m2mme")
-
-[node name="Timer" type="Timer" parent="JoystickRight/JoystickOuter"]
-
-[node name="JoystickInner" type="Sprite2D" parent="JoystickRight"]
-position = Vector2(1143.2, 999.2)
-scale = Vector2(0.4, 0.4)
-texture = ExtResource("4_sy0pa")
-script = ExtResource("4_ec0kx")
-
-[node name="JoystickLeft" type="Node" parent="."]
-
-[node name="JoystickOuter" type="Sprite2D" parent="JoystickLeft"]
-position = Vector2(695.2, 999.2)
-scale = Vector2(0.4, 0.4)
-texture = ExtResource("3_m5igp")
-script = ExtResource("4_m2mme")
-
-[node name="Timer" type="Timer" parent="JoystickLeft/JoystickOuter"]
-
-[node name="JoystickInner" type="Sprite2D" parent="JoystickLeft"]
-position = Vector2(696.2, 999.2)
-scale = Vector2(0.4, 0.4)
-texture = ExtResource("4_sy0pa")
-script = ExtResource("4_ec0kx")
-
-[node name="EngineRPM2" type="NinePatchRect" parent="."]
+[node name="EngineRPM2" type="NinePatchRect" parent="EnginePanel"]
 offset_left = 1664.0
 offset_top = 576.0
 offset_right = 1808.0
@@ -87,7 +45,7 @@ patch_margin_top = 20
 patch_margin_right = 20
 patch_margin_bottom = 20
 
-[node name="EngineRPM" type="Label" parent="."]
+[node name="EngineRPM" type="Label" parent="EnginePanel"]
 offset_left = 1664.0
 offset_top = 584.0
 offset_right = 1808.0
@@ -96,7 +54,345 @@ theme_override_font_sizes/font_size = 19
 text = "ENGINE RPM:"
 horizontal_alignment = 1
 
-[node name="StartMotor" type="Button" parent="."]
+[node name="WorkModeHud" type="Node2D" parent="EnginePanel"]
+
+[node name="WorkModeSlider" type="ProgressBar" parent="EnginePanel/WorkModeHud"]
+offset_left = 1664.0
+offset_top = 664.0
+offset_right = 1688.0
+offset_bottom = 1024.0
+max_value = 9.0
+step = 1.0
+fill_mode = 3
+show_percentage = false
+
+[node name="Idle1" type="NinePatchRect" parent="EnginePanel/WorkModeHud"]
+offset_left = 1696.0
+offset_top = 1008.0
+offset_right = 1804.0
+offset_bottom = 1048.0
+size_flags_horizontal = 4
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="Idle1Label" type="Label" parent="EnginePanel/WorkModeHud/Idle1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -11.5
+offset_right = 24.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "IDLE 1"
+
+[node name="Idle2" type="NinePatchRect" parent="EnginePanel/WorkModeHud"]
+offset_left = 1696.0
+offset_top = 968.0
+offset_right = 1804.0
+offset_bottom = 1008.0
+size_flags_horizontal = 4
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="Idle2Label" type="Label" parent="EnginePanel/WorkModeHud/Idle2"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -11.5
+offset_right = 24.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "IDLE 2"
+
+[node name="Fine1" type="NinePatchRect" parent="EnginePanel/WorkModeHud"]
+offset_left = 1696.0
+offset_top = 928.0
+offset_right = 1804.0
+offset_bottom = 968.0
+size_flags_horizontal = 4
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="Fine1Label" type="Label" parent="EnginePanel/WorkModeHud/Fine1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -11.5
+offset_right = 24.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "FINE 1"
+
+[node name="Fine2" type="NinePatchRect" parent="EnginePanel/WorkModeHud"]
+offset_left = 1696.0
+offset_top = 888.0
+offset_right = 1804.0
+offset_bottom = 928.0
+size_flags_horizontal = 4
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="Fine2Label" type="Label" parent="EnginePanel/WorkModeHud/Fine2"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -11.5
+offset_right = 24.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "FINE 2"
+
+[node name="Fine3" type="NinePatchRect" parent="EnginePanel/WorkModeHud"]
+offset_left = 1696.0
+offset_top = 848.0
+offset_right = 1804.0
+offset_bottom = 888.0
+size_flags_horizontal = 4
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="Fine3Label" type="Label" parent="EnginePanel/WorkModeHud/Fine3"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -11.5
+offset_right = 24.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "FINE 3"
+
+[node name="General1" type="NinePatchRect" parent="EnginePanel/WorkModeHud"]
+offset_left = 1696.0
+offset_top = 808.0
+offset_right = 1804.0
+offset_bottom = 848.0
+size_flags_horizontal = 4
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="General1Label" type="Label" parent="EnginePanel/WorkModeHud/General1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -11.5
+offset_right = 24.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "GENERAL 1"
+
+[node name="General2" type="NinePatchRect" parent="EnginePanel/WorkModeHud"]
+offset_left = 1696.0
+offset_top = 768.0
+offset_right = 1804.0
+offset_bottom = 808.0
+size_flags_horizontal = 4
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="General2Label" type="Label" parent="EnginePanel/WorkModeHud/General2"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -11.5
+offset_right = 24.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "GENERAL 2"
+
+[node name="General3" type="NinePatchRect" parent="EnginePanel/WorkModeHud"]
+offset_left = 1696.0
+offset_top = 728.0
+offset_right = 1804.0
+offset_bottom = 768.0
+size_flags_horizontal = 4
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="General3Label" type="Label" parent="EnginePanel/WorkModeHud/General3"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -11.5
+offset_right = 24.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "GENERAL 3"
+
+[node name="High" type="NinePatchRect" parent="EnginePanel/WorkModeHud"]
+offset_left = 1696.0
+offset_top = 688.0
+offset_right = 1804.0
+offset_bottom = 728.0
+size_flags_horizontal = 4
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="HighLabel" type="Label" parent="EnginePanel/WorkModeHud/High"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -11.5
+offset_right = 24.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "HIGH"
+
+[node name="PowerBoost" type="NinePatchRect" parent="EnginePanel/WorkModeHud"]
+offset_left = 1696.0
+offset_top = 648.0
+offset_right = 1804.0
+offset_bottom = 688.0
+size_flags_horizontal = 4
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="PowerBoostLabel" type="Label" parent="EnginePanel/WorkModeHud/PowerBoost"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -11.5
+offset_right = 24.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "BOOST"
+
+[node name="JoypadPanel" type="Node" parent="."]
+
+[node name="Background" type="NinePatchRect" parent="JoypadPanel"]
+offset_left = 624.0
+offset_top = 920.0
+offset_right = 1216.0
+offset_bottom = 1088.0
+texture = ExtResource("13_5c2qr")
+region_rect = Rect2(640, 80, 81, 401)
+patch_margin_left = 10
+patch_margin_top = 10
+patch_margin_right = 10
+patch_margin_bottom = 10
+
+[node name="JoystickRight" type="Node" parent="JoypadPanel"]
+
+[node name="JoystickOuter" type="Sprite2D" parent="JoypadPanel/JoystickRight"]
+position = Vector2(1143.2, 999.2)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("3_m5igp")
+script = ExtResource("4_m2mme")
+
+[node name="Timer" type="Timer" parent="JoypadPanel/JoystickRight/JoystickOuter"]
+
+[node name="JoystickInner" type="Sprite2D" parent="JoypadPanel/JoystickRight"]
+position = Vector2(1143.2, 999.2)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("4_sy0pa")
+script = ExtResource("4_ec0kx")
+
+[node name="JoystickLeft" type="Node" parent="JoypadPanel"]
+
+[node name="JoystickOuter" type="Sprite2D" parent="JoypadPanel/JoystickLeft"]
+position = Vector2(695.2, 999.2)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("3_m5igp")
+script = ExtResource("4_m2mme")
+
+[node name="Timer" type="Timer" parent="JoypadPanel/JoystickLeft/JoystickOuter"]
+
+[node name="JoystickInner" type="Sprite2D" parent="JoypadPanel/JoystickLeft"]
+position = Vector2(696.2, 999.2)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("4_sy0pa")
+script = ExtResource("4_ec0kx")
+
+[node name="StartMotor" type="Button" parent="JoypadPanel"]
 offset_left = 800.0
 offset_top = 1000.0
 offset_right = 864.0
@@ -107,7 +403,7 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 toggle_mode = true
 text = "START"
 
-[node name="Shutdown" type="Button" parent="."]
+[node name="Shutdown" type="Button" parent="JoypadPanel"]
 offset_left = 880.0
 offset_top = 1000.0
 offset_right = 944.0
@@ -118,7 +414,7 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 toggle_mode = true
 text = "OFF"
 
-[node name="StopMotion" type="Button" parent="."]
+[node name="StopMotion" type="Button" parent="JoypadPanel"]
 offset_left = 976.0
 offset_top = 1000.0
 offset_right = 1040.0
@@ -128,6 +424,30 @@ theme = ExtResource("7_g7p6j")
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 toggle_mode = true
 text = "HALT"
+
+[node name="ShutdownIndicator" type="Sprite2D" parent="JoypadPanel"]
+position = Vector2(912, 984)
+scale = Vector2(0.142222, 0.0533334)
+texture = ExtResource("9_ndgb5")
+region_enabled = true
+region_rect = Rect2(810, 10, 450, 450)
+script = ExtResource("10_17fja")
+
+[node name="StartMotorIndicator" type="Sprite2D" parent="JoypadPanel"]
+position = Vector2(832, 984)
+scale = Vector2(0.142222, 0.0533335)
+texture = ExtResource("9_ndgb5")
+region_enabled = true
+region_rect = Rect2(10, 10, 450, 450)
+script = ExtResource("11_jpssk")
+
+[node name="StopMotionIndicator" type="Sprite2D" parent="JoypadPanel"]
+position = Vector2(1008, 984)
+scale = Vector2(0.142222, 0.0533332)
+texture = ExtResource("9_ndgb5")
+region_enabled = true
+region_rect = Rect2(1610, 10, 450, 450)
+script = ExtResource("12_ay2qu")
 
 [node name="StatusPanelLeft" type="Node" parent="."]
 
@@ -235,322 +555,6 @@ offset_bottom = 95.0
 text = "Uptime:"
 vertical_alignment = 1
 
-[node name="ShutdownIndicator" type="Sprite2D" parent="."]
-position = Vector2(912, 984)
-scale = Vector2(0.142222, 0.0533334)
-texture = ExtResource("9_ndgb5")
-region_enabled = true
-region_rect = Rect2(810, 10, 450, 450)
-script = ExtResource("10_17fja")
-
-[node name="StartMotorIndicator" type="Sprite2D" parent="."]
-position = Vector2(832, 984)
-scale = Vector2(0.142222, 0.0533335)
-texture = ExtResource("9_ndgb5")
-region_enabled = true
-region_rect = Rect2(10, 10, 450, 450)
-script = ExtResource("11_jpssk")
-
-[node name="StopMotionIndicator" type="Sprite2D" parent="."]
-position = Vector2(1008, 984)
-scale = Vector2(0.142222, 0.0533332)
-texture = ExtResource("9_ndgb5")
-region_enabled = true
-region_rect = Rect2(1610, 10, 450, 450)
-script = ExtResource("12_ay2qu")
-
-[node name="WorkModeHud" type="Node2D" parent="."]
-
-[node name="WorkModeSlider" type="ProgressBar" parent="WorkModeHud"]
-offset_left = 1664.0
-offset_top = 664.0
-offset_right = 1688.0
-offset_bottom = 1024.0
-max_value = 9.0
-step = 1.0
-fill_mode = 3
-show_percentage = false
-
-[node name="Idle1" type="NinePatchRect" parent="WorkModeHud"]
-offset_left = 1696.0
-offset_top = 1008.0
-offset_right = 1804.0
-offset_bottom = 1048.0
-size_flags_horizontal = 4
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 20
-patch_margin_top = 20
-patch_margin_right = 20
-patch_margin_bottom = 20
-
-[node name="Idle1Label" type="Label" parent="WorkModeHud/Idle1"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -24.0
-offset_top = -11.5
-offset_right = 24.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "IDLE 1"
-
-[node name="Idle2" type="NinePatchRect" parent="WorkModeHud"]
-offset_left = 1696.0
-offset_top = 968.0
-offset_right = 1804.0
-offset_bottom = 1008.0
-size_flags_horizontal = 4
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 20
-patch_margin_top = 20
-patch_margin_right = 20
-patch_margin_bottom = 20
-
-[node name="Idle2Label" type="Label" parent="WorkModeHud/Idle2"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -24.0
-offset_top = -11.5
-offset_right = 24.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "IDLE 2"
-
-[node name="Fine1" type="NinePatchRect" parent="WorkModeHud"]
-offset_left = 1696.0
-offset_top = 928.0
-offset_right = 1804.0
-offset_bottom = 968.0
-size_flags_horizontal = 4
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 20
-patch_margin_top = 20
-patch_margin_right = 20
-patch_margin_bottom = 20
-
-[node name="Fine1Label" type="Label" parent="WorkModeHud/Fine1"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -24.0
-offset_top = -11.5
-offset_right = 24.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "FINE 1"
-
-[node name="Fine2" type="NinePatchRect" parent="WorkModeHud"]
-offset_left = 1696.0
-offset_top = 888.0
-offset_right = 1804.0
-offset_bottom = 928.0
-size_flags_horizontal = 4
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 20
-patch_margin_top = 20
-patch_margin_right = 20
-patch_margin_bottom = 20
-
-[node name="Fine2Label" type="Label" parent="WorkModeHud/Fine2"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -24.0
-offset_top = -11.5
-offset_right = 24.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "FINE 2"
-
-[node name="Fine3" type="NinePatchRect" parent="WorkModeHud"]
-offset_left = 1696.0
-offset_top = 848.0
-offset_right = 1804.0
-offset_bottom = 888.0
-size_flags_horizontal = 4
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 20
-patch_margin_top = 20
-patch_margin_right = 20
-patch_margin_bottom = 20
-
-[node name="Fine3Label" type="Label" parent="WorkModeHud/Fine3"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -24.0
-offset_top = -11.5
-offset_right = 24.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "FINE 3"
-
-[node name="General1" type="NinePatchRect" parent="WorkModeHud"]
-offset_left = 1696.0
-offset_top = 808.0
-offset_right = 1804.0
-offset_bottom = 848.0
-size_flags_horizontal = 4
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 20
-patch_margin_top = 20
-patch_margin_right = 20
-patch_margin_bottom = 20
-
-[node name="General1Label" type="Label" parent="WorkModeHud/General1"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -24.0
-offset_top = -11.5
-offset_right = 24.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "GENERAL 1"
-
-[node name="General2" type="NinePatchRect" parent="WorkModeHud"]
-offset_left = 1696.0
-offset_top = 768.0
-offset_right = 1804.0
-offset_bottom = 808.0
-size_flags_horizontal = 4
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 20
-patch_margin_top = 20
-patch_margin_right = 20
-patch_margin_bottom = 20
-
-[node name="General2Label" type="Label" parent="WorkModeHud/General2"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -24.0
-offset_top = -11.5
-offset_right = 24.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "GENERAL 2"
-
-[node name="General3" type="NinePatchRect" parent="WorkModeHud"]
-offset_left = 1696.0
-offset_top = 728.0
-offset_right = 1804.0
-offset_bottom = 768.0
-size_flags_horizontal = 4
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 20
-patch_margin_top = 20
-patch_margin_right = 20
-patch_margin_bottom = 20
-
-[node name="General3Label" type="Label" parent="WorkModeHud/General3"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -24.0
-offset_top = -11.5
-offset_right = 24.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "GENERAL 3"
-
-[node name="High" type="NinePatchRect" parent="WorkModeHud"]
-offset_left = 1696.0
-offset_top = 688.0
-offset_right = 1804.0
-offset_bottom = 728.0
-size_flags_horizontal = 4
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 20
-patch_margin_top = 20
-patch_margin_right = 20
-patch_margin_bottom = 20
-
-[node name="HighLabel" type="Label" parent="WorkModeHud/High"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -24.0
-offset_top = -11.5
-offset_right = 24.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "HIGH"
-
-[node name="PowerBoost" type="NinePatchRect" parent="WorkModeHud"]
-offset_left = 1696.0
-offset_top = 648.0
-offset_right = 1804.0
-offset_bottom = 688.0
-size_flags_horizontal = 4
-texture = ExtResource("13_5c2qr")
-region_rect = Rect2(640, 80, 81, 401)
-patch_margin_left = 20
-patch_margin_top = 20
-patch_margin_right = 20
-patch_margin_bottom = 20
-
-[node name="PowerBoostLabel" type="Label" parent="WorkModeHud/PowerBoost"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -24.0
-offset_top = -11.5
-offset_right = 24.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "BOOST"
-
 [node name="Settings" type="Button" parent="."]
 offset_left = 16.0
 offset_top = 16.0
@@ -560,9 +564,9 @@ icon = ExtResource("14_g0avh")
 expand_icon = true
 script = ExtResource("15_o6f3m")
 
-[connection signal="pressed" from="StartMotor" to="." method="_on_start_motor_pressed"]
-[connection signal="pressed" from="Shutdown" to="." method="_on_shutdown_pressed"]
-[connection signal="button_down" from="StopMotion" to="." method="_on_stop_motor_button_down"]
-[connection signal="button_up" from="StopMotion" to="." method="_on_stop_motor_button_up"]
-[connection signal="pressed" from="StopMotion" to="." method="_on_stop_motion_pressed"]
+[connection signal="pressed" from="JoypadPanel/StartMotor" to="." method="_on_start_motor_pressed"]
+[connection signal="pressed" from="JoypadPanel/Shutdown" to="." method="_on_shutdown_pressed"]
+[connection signal="button_down" from="JoypadPanel/StopMotion" to="." method="_on_stop_motor_button_down"]
+[connection signal="button_up" from="JoypadPanel/StopMotion" to="." method="_on_stop_motor_button_up"]
+[connection signal="pressed" from="JoypadPanel/StopMotion" to="." method="_on_stop_motion_pressed"]
 [connection signal="pressed" from="Settings" to="Settings" method="_on_pressed"]
