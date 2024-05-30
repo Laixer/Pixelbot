@@ -565,7 +565,7 @@ func send(message_type: MessageType, payload: PackedByteArray) -> bool:
 	return true
 
 func probe() -> bool:
-	if _ping_start_time_msec >= PING_TIMEOUT:
+	if (_ping_start_time_msec != 0) and (Time.get_ticks_msec() - _ping_start_time_msec >= PING_TIMEOUT):
 		print("Ping timeout")
 		_latency = PING_TIMEOUT
 		_ping_start_time_msec = 0
