@@ -23,6 +23,15 @@ const OPERATOR_TIME_STRING = "Operator time: "
 const EXCAVATOR_TIME_STRING = "Time: "
 const EXCAVATOR_UPTIME_STRING = "Uptime: "
 
+@onready var joystick_right = $JoypadPanel/JoystickRight
+@onready var joystick_left = $JoypadPanel/JoystickLeft
+@onready var start_button = $JoypadPanel/StartMotor
+@onready var start_indicator = $JoypadPanel/StartMotorIndicator
+@onready var shutdown_button = $JoypadPanel/Shutdown
+@onready var shutdown_indicator = $JoypadPanel/ShutdownIndicator
+@onready var stop_button = $JoypadPanel/StopMotion
+@onready var stop_indicator = $JoypadPanel/StopMotionIndicator
+
 #TODO: Need calibration and init
 var joypad_map = {
 	"right": 0,
@@ -311,37 +320,37 @@ func handle_slider(event):
 		update_rpm(rpm)
 
 func handle_joystick(event):
-	#ignore drift
-	var x_abs = abs(Input.get_joy_axis(event.device, joypad_map["x"]))
-	var y_abs = abs(Input.get_joy_axis(event.device, joypad_map["y"]))
-	if x_abs <= JOYSTICK_DEADZONE and y_abs <= JOYSTICK_DEADZONE:
-		return
-				
 	var joystick
 	var actuator
 	if event.device == joypad_map["right"] and event.axis == joypad_map["x"]:
-		joystick = $JoystickRight
+		joystick = joystick_right
 		actuator =  Actuator.ATTACHMENT
 	elif event.device == joypad_map["left"] and event.axis == joypad_map["x"]:
-		joystick = $JoystickLeft
+		joystick = joystick_left
 		actuator =  Actuator.SLEW
 	elif event.device == joypad_map["right"] and event.axis == joypad_map["y"]:
-		joystick = $JoystickRight
+		joystick = joystick_right
 		actuator =  Actuator.BOOM
 	elif event.device == joypad_map["left"] and event.axis == joypad_map["y"]:
-		joystick = $JoystickLeft
+		joystick = joystick_left
 		actuator =  Actuator.ARM
 		
 	if !motion_allowed():
 		joystick.get_node("JoystickOuter").toggle_color_duration(0.1)
 		return
 
-	send_motion_message(event.axis_value, actuator)
-
 	if event.axis == joypad_map["x"]:
 		joystick.get_node("JoystickInner").position.x = joystick.get_node("JoystickInner").start_position.x + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
 	elif event.axis == joypad_map["y"]:
 		joystick.get_node("JoystickInner").position.y = joystick.get_node("JoystickInner").start_position.y + event.axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
+
+	#ignore drift
+	var x_abs = abs(Input.get_joy_axis(event.device, joypad_map["x"]))
+	var y_abs = abs(Input.get_joy_axis(event.device, joypad_map["y"]))
+	if x_abs <= JOYSTICK_DEADZONE and y_abs <= JOYSTICK_DEADZONE:
+		return
+
+	send_motion_message(event.axis_value, actuator)
 
 	if engine_started_rpm_update:
 		var slider_value = Input.get_joy_axis(joypad_map["right"], joypad_map["slider"])
