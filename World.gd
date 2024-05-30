@@ -134,9 +134,6 @@ const WorkModeRPM = {
 
 func _ready():
 	# Ensure the handle is centered at start (neutral position).
-	#$"WorkModeHud".text = "Requested Work Mode: None"
-	#$Shutdown.disabled = true
-	#Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
 	init_client()
 
@@ -221,13 +218,9 @@ func update_rpm(rpm: int):
 	$"EngineRPM".text = "Engine RPM:\n" + str(rpm)
 	if rpm == 0:
 		excavator["engine_state"] = EngineState.SHUTDOWN
-		#$ShutdownIndicator.set_indicator(true)
-		#$StartMotorIndicator.set_indicator(false)
 		engine_state_changed = true
 	elif rpm >= ENGINE_START_RPM:
 		excavator["engine_state"] = EngineState.RUNNING
-		#$ShutdownIndicator.set_indicator(false)
-		#$StartMotorIndicator.set_indicator(true)
 		if engine_state_changed:
 			excavator["motion_state"] = MotionState.LOCKED
 			engine_state_changed = false
@@ -373,7 +366,6 @@ func handle_shutdown(pressed: bool):
 		return
 
 	if excavator["engine_state"] == EngineState.SHUTDOWN:
-		# TODO: Set border to indicate pressed but not correct 
 		print("Engine is already shutdown")
 		return
 	
@@ -391,10 +383,6 @@ func handle_start(pressed: bool):
 	if excavator["engine_state"] == EngineState.RUNNING:
 		print("Engine is already running")
 		return
-
-	#if excavator["motion_state"] == MotionState.LOCKED:
-		#print("Motion is locked, engine cannot be started")
-		#return
 
 	if !request_start_motor():
 		print("Request start motor communication error")
@@ -428,66 +416,6 @@ func send_motion_message(axis_value: float, actuator: Actuator) -> bool:
 	
 	motion.value_list = [change_set]
 	
-	return _client.send(Client.MessageType.MOTION, motion.to_bytes())	
-					
-func handle_attachment(axis_value: float) -> bool:
-	#print("handle_attachment ", axis_value)
-	$JoystickInnerRight.position.x = $JoystickInnerRight.start_position.x + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
-
-	var motion = Client.MotionMessage.new()
-	motion.command = Client.CHANGE
-	
-	var change_set = Client.MotionChangeSetMessage.new()
-	change_set.actuator = 5
-	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, MOTION_MAX, MOTION_MIN)
-	
-	motion.value_list = [change_set]
-	
-	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
-	
-func handle_boom(axis_value: float) -> bool:
-	#print("handle_boom ", axis_value)
-	$JoystickInnerRight.position.y = $JoystickInnerRight.start_position.y + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
-
-	var motion = Client.MotionMessage.new()
-	motion.command = Client.CHANGE
-	
-	var change_set = Client.MotionChangeSetMessage.new()
-	change_set.actuator = 0
-	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, MOTION_MAX, MOTION_MIN)
-	
-	motion.value_list = [change_set]
-	
-	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
-
-func handle_slew(axis_value: float) -> bool:
-	#print("handle_slew ", axis_value)
-	$JoystickInnerLeft.position.x = $JoystickInnerLeft.start_position.x + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
-
-	var motion = Client.MotionMessage.new()
-	motion.command = Client.CHANGE
-	
-	var change_set = Client.MotionChangeSetMessage.new()
-	change_set.actuator = 1
-	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, MOTION_MAX, MOTION_MIN)
-	
-	motion.value_list = [change_set]
-	
-	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
-	
-func handle_arm(axis_value: float) -> bool:
-	#print("handle_arm ", axis_value)
-	$JoystickInnerLeft.position.y = $JoystickInnerLeft.start_position.y + axis_value * JOYSTICK_MAX_HANDLE_DISTANCE
-
-	var motion = Client.MotionMessage.new()
-	motion.command = Client.CHANGE
-	
-	var change_set = Client.MotionChangeSetMessage.new()
-	change_set.actuator = 4
-	change_set.value = map_float_to_int_range(axis_value, -1.0, 1.0, MOTION_MAX, MOTION_MIN)
-	
-	motion.value_list = [change_set]
-	
 	return _client.send(Client.MessageType.MOTION, motion.to_bytes())
 
 func motion_allowed() -> bool:
@@ -510,9 +438,6 @@ func request_shutdown() -> bool:
 	var engine = Client.EngineMessage.new()
 	engine.rpm = 0
 	return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
-	# var control = Client.ControlMessage.new()
-	# control.control_type = Client.ControlType.ENGINE_SHUTDOWN
-	# return _client.send(Client.MessageType.CONTROL, control.to_bytes())
 
 func request_stop_motion() -> bool:
 	print("stop motion")
@@ -527,18 +452,10 @@ func request_resume_motion() -> bool:
 func request_work_mode(work_mode: WorkMode) -> bool:
 	print("sending work mode request")
 
-	# var control = Client.ControlMessage.new()
-	# control.control_type = Client.ControlType.ENGINE_REQUEST
-	# control.value = WorkModeRPM[work_mode]
-	# return _client.send(Client.MessageType.CONTROL, control.to_bytes())
-
 	var engine = Client.EngineMessage.new()
 	engine.rpm = WorkModeRPM[work_mode]
 	return _client.send(Client.MessageType.ENGINE, engine.to_bytes())
 
-# func change_work_mode_text(work_mode: WorkMode):
-# 	$WorkModeHud/WorkModeSlider.value = work_mode
-# 	#$"WorkModeSlider/WorkModeLabel".text = "Requested Work Mode: " + WorkModeName[work_mode]
 
 func handle_work_mode(work_mode_value: int):
 	if work_mode_value not in WorkMode.values():
