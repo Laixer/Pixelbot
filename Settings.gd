@@ -16,12 +16,15 @@ func _on_pressed():
 	#hide items
 	var parent = get_parent()
 	var joypad = parent.get_node("JoypadPanel")
+	var engine = parent.get_node("EnginePanel")
 	if joypad != null:
 		if child_visible:
 			set_visiblility_all_children(joypad, false)
+			set_visiblility_all_children(engine, false)
 			child_visible = false
 		else:
 			set_visiblility_all_children(joypad, true)
+			set_visiblility_all_children(engine, true)
 			child_visible = true
 	else:
 		print("No joypad node")
@@ -29,5 +32,7 @@ func _on_pressed():
 
 func set_visiblility_all_children(parent, visibility):
 	for child in parent.get_children():
+		if child.get_child_count() > 0:
+			set_visiblility_all_children(child, visibility)
 		if child is CanvasItem:  
 			child.visible = visibility
